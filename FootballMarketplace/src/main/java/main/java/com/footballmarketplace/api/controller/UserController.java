@@ -3,6 +3,7 @@ package main.java.com.footballmarketplace.api.controller;
 import main.java.com.footballmarketplace.application.dto.UserRequest;
 import main.java.com.footballmarketplace.application.service.UserService;
 import main.java.com.footballmarketplace.domain.model.User;
+import main.java.com.footballmarketplace.domain.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,11 @@ public class UserController {
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
         user.setPassword(userRequest.getPassword());
+        user.setTeamName(userRequest.getTeamName());
+        user.setYearFounded(userRequest.getYearFounded());
+        user.setStadium(userRequest.getStadium());
+        user.setCity(userRequest.getCity());
+        user.setRole(Role.valueOf(userRequest.getRole().toUpperCase()));
 
         User savedUser = userService.addUser(user);
         return ResponseEntity.created(URI.create("/users/" + savedUser.getId())).body(savedUser);

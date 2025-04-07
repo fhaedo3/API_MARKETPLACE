@@ -34,6 +34,7 @@ public class ShoppingCartController {
     public ResponseEntity<ShoppingCart> addShoppingCart(@RequestBody ShoppingCartRequest request) {
         ShoppingCart cart = new ShoppingCart();
         cart.setUserId(request.getUserId());
+        cart.setStatus(request.getStatus());
 
         ShoppingCart savedCart = shoppingCartService.addShoppingCart(cart);
         return ResponseEntity.created(URI.create("/shopping-carts/" + savedCart.getId())).body(savedCart);

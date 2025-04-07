@@ -4,7 +4,12 @@ import lombok.Data;
 
 @Data
 public class UserRequest {
-    private String username; // Nombre de usuario
-    private String email;    // Correo electrónico
-    private String password; // Contraseña
+    private String username;
+    private String email;
+    private String password;
+    private String teamName;
+    private Integer yearFounded;
+    private String stadium;
+    private String city;
+    private String role; 
 }

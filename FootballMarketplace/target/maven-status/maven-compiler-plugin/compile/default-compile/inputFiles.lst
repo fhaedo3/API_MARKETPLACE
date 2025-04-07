@@ -22,6 +22,7 @@ C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballm
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\api\controller\UserController.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\application\service\CartItemService.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\application\dto\UserRequest.java
+C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\domain\model\Auditable.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\application\service\TransactionService.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\application\dto\PlayerRequest.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\main\java\com\footballmarketplace\FootballMarketplaceApplication.java

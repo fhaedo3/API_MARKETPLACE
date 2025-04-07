@@ -4,7 +4,6 @@ import main.java.com.footballmarketplace.domain.interfaces.IOperationRepository;
 import main.java.com.footballmarketplace.domain.model.Operation;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +29,6 @@ public class OperationRepository implements IOperationRepository {
     public Operation save(Operation operation) {
         if (operation.getId() == null) {
             operation.setId(idGenerator.getAndIncrement());
-            operation.setTimestamp(LocalDateTime.now());
             operations.add(operation);
         } else {
             operations.removeIf(op -> op.getId().equals(operation.getId()));

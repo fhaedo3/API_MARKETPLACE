@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class ShoppingCart {
-    private Long id;
-    private Long userId; // ID del usuario propietario del carrito
-    private List<Long> cartItemIds = new ArrayList<>(); // IDs de los CartItems asociados
+public class ShoppingCart extends Auditable {
+    private Long userId; 
+    private String status; 
+
+    private List<Long> cartItemIds = new ArrayList<>(); 
 }

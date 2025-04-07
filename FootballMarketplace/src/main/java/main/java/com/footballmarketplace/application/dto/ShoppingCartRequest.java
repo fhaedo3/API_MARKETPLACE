@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class ShoppingCartRequest {
-    private Long userId; // ID del usuario propietario del carrito
+    private Long userId;
+    private String status;
 }

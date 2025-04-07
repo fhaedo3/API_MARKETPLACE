@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class CartItemRequest {
-    private Long cartId;   // ID del carrito
-    private Long playerId; // ID del jugador
+    private Long cartId;   
+    private Long playerId; 
 }

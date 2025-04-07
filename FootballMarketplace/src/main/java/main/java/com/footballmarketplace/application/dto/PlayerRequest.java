@@ -4,6 +4,12 @@ import lombok.Data;
 
 @Data
 public class PlayerRequest {
-    private String name;       // Nombre del jugador
-    private String position;   // Posición del jugador
+    private String name;
+    private String position;
+    private Integer rating;
+    private String characteristics;
+    private Double price;
+    private Boolean isForSale;
+    private Long ownerId;
+    private String image;
 }

@@ -33,8 +33,11 @@ public class TransactionController {
     @PostMapping
     public ResponseEntity<Transaction> addTransaction(@RequestBody TransactionRequest transactionRequest) {
         Transaction transaction = new Transaction();
-        transaction.setUserId(transactionRequest.getUserId());
-        transaction.setAmount(transactionRequest.getAmount());
+        transaction.setBuyerId(transactionRequest.getBuyerId());
+        transaction.setSellerId(transactionRequest.getSellerId());
+        transaction.setPlayerId(transactionRequest.getPlayerId());
+        transaction.setOperationId(transactionRequest.getOperationId());
+        transaction.setTotal(transactionRequest.getTotal());
 
         Transaction savedTransaction = transactionService.addTransaction(transaction);
         return ResponseEntity.created(URI.create("/transactions/" + savedTransaction.getId())).body(savedTransaction);

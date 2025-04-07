@@ -4,7 +4,6 @@ import main.java.com.footballmarketplace.domain.interfaces.ITransactionRepositor
 import main.java.com.footballmarketplace.domain.model.Transaction;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +29,6 @@ public class TransactionRepository implements ITransactionRepository {
     public Transaction save(Transaction transaction) {
         if (transaction.getId() == null) {
             transaction.setId(idGenerator.getAndIncrement());
-            transaction.setDate(LocalDateTime.now());
             transactions.add(transaction);
         } else {
             transactions.removeIf(tx -> tx.getId().equals(transaction.getId()));

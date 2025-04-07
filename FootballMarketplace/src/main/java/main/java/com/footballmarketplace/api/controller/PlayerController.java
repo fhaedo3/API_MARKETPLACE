@@ -35,6 +35,12 @@ public class PlayerController {
         Player player = new Player();
         player.setName(playerRequest.getName());
         player.setPosition(playerRequest.getPosition());
+        player.setRating(playerRequest.getRating());
+        player.setCharacteristics(playerRequest.getCharacteristics());
+        player.setPrice(playerRequest.getPrice());
+        player.setIsForSale(playerRequest.getIsForSale());
+        player.setOwnerId(playerRequest.getOwnerId());
+        player.setImage(playerRequest.getImage());
 
         Player savedPlayer = playerService.addPlayer(player);
         return ResponseEntity.created(URI.create("/players/" + savedPlayer.getId())).body(savedPlayer);
