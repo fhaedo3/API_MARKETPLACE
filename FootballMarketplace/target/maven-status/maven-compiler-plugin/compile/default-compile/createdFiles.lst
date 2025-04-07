@@ -30,7 +30,6 @@ main\java\com\footballmarketplace\application\dto\CartItemRequest.class
 main\java\com\footballmarketplace\infrastructure\repository\CartItemRepository.class
 main\java\com\footballmarketplace\infrastructure\repository\UserRepository.class
 main\java\com\footballmarketplace\application\service\CartItemService.class
-com\footballmarketplace\FootballMarketplaceApplication.class
 main\java\com\footballmarketplace\domain\interfaces\IShoppingCartRepository.class
 main\java\com\footballmarketplace\domain\model\ShoppingCart.class
 main\java\com\footballmarketplace\api\controller\UserController.class
