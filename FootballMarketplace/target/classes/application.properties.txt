@@ -1,0 +1,6 @@
+# Configuración de Springdoc OpenAPI
+springdoc.api-docs.enabled=true
+springdoc.swagger-ui.enabled=true
+
+# Configuración del servidor
+server.port=8080
