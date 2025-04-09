@@ -11,5 +11,5 @@ public class UserRequest {
     private Integer yearFounded;
     private String stadium;
     private String city;
-    private String role; 
+    private String role;
 }

@@ -2,7 +2,7 @@ package com.footballmarketplace.application.service;
 
 import com.footballmarketplace.domain.interfaces.IPlayerRepository;
 import com.footballmarketplace.domain.model.Player;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.footballmarketplace.domain.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,10 +12,11 @@ import java.util.Optional;
 public class PlayerService {
 
     private final IPlayerRepository playerRepository;
+    private final UserService userService;
 
-    @Autowired
-    public PlayerService(IPlayerRepository playerRepository) {
+    public PlayerService(IPlayerRepository playerRepository, UserService userService) {
         this.playerRepository = playerRepository;
+        this.userService = userService;
     }
 
     public List<Player> getAllPlayers() {
@@ -32,5 +33,24 @@ public class PlayerService {
 
     public void deletePlayer(Long id) {
         playerRepository.deleteById(id);
+    }
+
+    public List<Player> getPlayersByOwnerId(Long ownerId) {
+        return playerRepository.findByOwnerId(ownerId);
+    }
+
+    public Player updatePlayerOwner(Long playerId, Long ownerId) {
+        Optional<Player> playerOpt = playerRepository.findById(playerId);
+        if (playerOpt.isPresent()) {
+            Player player = playerOpt.get();
+            User owner = userService.getUserById(ownerId).orElse(null);
+            player.setOwner(owner);
+            return playerRepository.save(player);
+        }
+        return null;
+    }
+
+    public List<Player> getPlayersForSale() {
+        return playerRepository.findByIsForSaleTrue();
     }
 }

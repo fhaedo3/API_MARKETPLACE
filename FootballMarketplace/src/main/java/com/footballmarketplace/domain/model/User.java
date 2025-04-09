@@ -1,17 +1,51 @@
 package com.footballmarketplace.domain.model;
 
-import lombok.Data;
 import com.footballmarketplace.domain.enums.Role;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = "users")
 public class User extends Auditable {
-    private String username;
-    private String email;
-    private String password;
-    private String teamName;     
-    private Integer yearFounded;
-    private String stadium;      
-    private String city;         
 
-    private Role role;           
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column
+    private String teamName;
+
+    @Column
+    private Integer yearFounded;
+
+    @Column
+    private String stadium;
+
+    @Column
+    private String city;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Role role;
+
+    @OneToMany(mappedBy = "owner")
+    private List<Player> players;
+
+    @OneToMany(mappedBy = "user")
+    private List<ShoppingCart> shoppingCarts;
+
+    @OneToMany(mappedBy = "buyer")
+    private List<Transaction> purchases;
+
+    @OneToMany(mappedBy = "seller")
+    private List<Transaction> sales;
 }

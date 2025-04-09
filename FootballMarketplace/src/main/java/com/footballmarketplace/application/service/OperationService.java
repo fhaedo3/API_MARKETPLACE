@@ -2,7 +2,7 @@ package com.footballmarketplace.application.service;
 
 import com.footballmarketplace.domain.interfaces.IOperationRepository;
 import com.footballmarketplace.domain.model.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.footballmarketplace.domain.model.Transaction;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +13,6 @@ public class OperationService {
 
     private final IOperationRepository operationRepository;
 
-    @Autowired
     public OperationService(IOperationRepository operationRepository) {
         this.operationRepository = operationRepository;
     }
@@ -32,5 +31,13 @@ public class OperationService {
 
     public void deleteOperation(Long id) {
         operationRepository.deleteById(id);
+    }
+
+    public List<Transaction> getOperationTransactions(Long operationId) {
+        Optional<Operation> operationOpt = operationRepository.findById(operationId);
+        if (operationOpt.isPresent()) {
+            return operationOpt.get().getTransactions();
+        }
+        return List.of();
     }
 }
