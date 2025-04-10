@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/shopping-carts")
@@ -36,11 +35,7 @@ public class ShoppingCartController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ShoppingCart>> getShoppingCartsByUserId(@PathVariable Long userId) {
-        List<ShoppingCart> carts = shoppingCartService.getShoppingCartsByUserId(userId);
-        return ResponseEntity.ok(carts);
-    }
+
 
     @GetMapping("/user/{userId}/active")
     public ResponseEntity<ShoppingCart> getActiveCartForUser(@PathVariable Long userId) {
@@ -51,13 +46,9 @@ public class ShoppingCartController {
     @PostMapping
     public ResponseEntity<ShoppingCart> addShoppingCart(@RequestBody ShoppingCartRequest request) {
         ShoppingCart cart = new ShoppingCart();
-        Optional<User> userOpt = userService.getUserById(request.getUserId());
+        User user = userService.getUserById(request.getUserId()); 
 
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        cart.setUser(userOpt.get());
+        cart.setUser(user);
         cart.setStatus(request.getStatus());
 
         ShoppingCart savedCart = shoppingCartService.addShoppingCart(cart);

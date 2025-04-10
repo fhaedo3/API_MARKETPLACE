@@ -47,8 +47,8 @@ public class TransactionService {
     }
 
     public Transaction createTransaction(Long buyerId, Long sellerId, Long playerId, Double total) {
-        User buyer = userService.getUserById(buyerId).orElse(null);
-        User seller = userService.getUserById(sellerId).orElse(null);
+        User buyer = userService.getUserById(buyerId);
+        User seller = userService.getUserById(sellerId);
         Player player = playerService.getPlayerById(playerId).orElse(null);
 
         if (buyer != null && seller != null && player != null) {

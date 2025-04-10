@@ -6,9 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.footballmarketplace.application.dto.UserRequest;
 import com.footballmarketplace.application.service.AuthenticationService;
-import com.footballmarketplace.api.controller.auth.AuthenticationRequest;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -20,7 +19,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody RegisterRequest request) {
+            @RequestBody UserRequest request) {
         return ResponseEntity.ok(service.register(request));
     }
 

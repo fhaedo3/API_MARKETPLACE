@@ -60,27 +60,25 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> addTransaction(@RequestBody TransactionRequest request) {
-        Optional<User> buyerOpt = userService.getUserById(request.getBuyerId());
-        Optional<User> sellerOpt = userService.getUserById(request.getSellerId());
-        Optional<Player> playerOpt = playerService.getPlayerById(request.getPlayerId());
-        Optional<Operation> operationOpt = operationService.getOperationById(request.getOperationId());
+public ResponseEntity<Transaction> addTransaction(@RequestBody TransactionRequest request) {
+    User buyer = userService.getUserById(request.getBuyerId());
+    User seller = userService.getUserById(request.getSellerId());
+    Player player = playerService.getPlayerById(request.getPlayerId()).orElseThrow(() -> 
+        new IllegalArgumentException("Player not found with ID: " + request.getPlayerId()));
+    Operation operation = operationService.getOperationById(request.getOperationId()).orElseThrow(() -> 
+        new IllegalArgumentException("Operation not found with ID: " + request.getOperationId()));
 
-        if (buyerOpt.isEmpty() || sellerOpt.isEmpty() || playerOpt.isEmpty() || operationOpt.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+    Transaction transaction = new Transaction();
+    transaction.setBuyer(buyer);
+    transaction.setSeller(seller);
+    transaction.setPlayer(player);
+    transaction.setOperation(operation);
+    transaction.setDate(LocalDateTime.now());
+    transaction.setTotal(request.getTotal());
 
-        Transaction transaction = new Transaction();
-        transaction.setBuyer(buyerOpt.get());
-        transaction.setSeller(sellerOpt.get());
-        transaction.setPlayer(playerOpt.get());
-        transaction.setOperation(operationOpt.get());
-        transaction.setDate(LocalDateTime.now());
-        transaction.setTotal(request.getTotal());
-
-        Transaction savedTransaction = transactionService.addTransaction(transaction);
-        return ResponseEntity.created(URI.create("/transactions/" + savedTransaction.getId())).body(savedTransaction);
-    }
+    Transaction savedTransaction = transactionService.addTransaction(transaction);
+    return ResponseEntity.created(URI.create("/transactions/" + savedTransaction.getId())).body(savedTransaction);
+}
 
     @PostMapping("/create-transfer")
     public ResponseEntity<Transaction> createTransfer(

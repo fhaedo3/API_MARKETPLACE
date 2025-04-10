@@ -8,7 +8,6 @@ import com.footballmarketplace.domain.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -23,8 +22,9 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
     }
 
     public User addUser(User user) {
@@ -36,34 +36,22 @@ public class UserService {
     }
 
     public List<Player> getUserPlayers(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getPlayers();
-        }
-        return List.of();
+        User user = getUserById(userId);
+        return user.getPlayers();
     }
 
     public List<ShoppingCart> getUserCarts(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getShoppingCarts();
-        }
-        return List.of();
+        User user = getUserById(userId);
+        return user.getShoppingCarts();
     }
 
     public List<Transaction> getUserPurchases(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getPurchases();
-        }
-        return List.of();
+        User user = getUserById(userId);
+        return user.getPurchases();
     }
 
     public List<Transaction> getUserSales(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getSales();
-        }
-        return List.of();
+        User user = getUserById(userId);
+        return user.getSales();
     }
 }

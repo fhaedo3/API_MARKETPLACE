@@ -43,7 +43,7 @@ public class PlayerService {
         Optional<Player> playerOpt = playerRepository.findById(playerId);
         if (playerOpt.isPresent()) {
             Player player = playerOpt.get();
-            User owner = userService.getUserById(ownerId).orElse(null);
+            User owner = userService.getUserById(ownerId);
             player.setOwner(owner);
             return playerRepository.save(player);
         }

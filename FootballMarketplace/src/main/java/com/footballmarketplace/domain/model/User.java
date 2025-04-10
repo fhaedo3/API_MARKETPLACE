@@ -4,15 +4,15 @@ import com.footballmarketplace.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.util.List;
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User extends Auditable implements org.springframework.security.core.userdetails.UserDetails {
+public class User extends Auditable implements UserDetails {
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -60,17 +60,20 @@ public class User extends Auditable implements org.springframework.security.core
     @OneToMany(mappedBy = "seller")
     private List<Transaction> sales;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+    // Métodos de la interfaz UserDetails
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.emptyList();
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 
     @Override
@@ -92,5 +95,4 @@ public class User extends Auditable implements org.springframework.security.core
     public boolean isEnabled() {
         return true;
     }
-
 }

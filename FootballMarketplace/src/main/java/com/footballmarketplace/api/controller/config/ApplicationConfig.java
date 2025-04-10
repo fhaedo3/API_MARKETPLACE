@@ -12,7 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.footballmarketplace.domain.interfaces.IUserRepository;
-import com.footballmarketplace.application.service.UserService;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -23,8 +22,8 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> repository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-    } 
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

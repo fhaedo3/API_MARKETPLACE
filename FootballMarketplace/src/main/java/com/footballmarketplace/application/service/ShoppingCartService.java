@@ -43,7 +43,7 @@ public class ShoppingCartService {
         return shoppingCartRepository.findByUserIdAndStatus(userId, "ACTIVE")
                 .orElseGet(() -> {
                     ShoppingCart newCart = new ShoppingCart();
-                    User user = userService.getUserById(userId).orElse(null);
+                    User user = userService.getUserById(userId);
                     newCart.setUser(user);
                     newCart.setStatus("ACTIVE");
                     return shoppingCartRepository.save(newCart);
