@@ -1,5 +1,6 @@
 package com.footballmarketplace.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +19,7 @@ public class Operation extends Auditable {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @OneToMany(mappedBy = "operation")
+    @OneToMany(mappedBy = "operation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // Evita la serialización cíclica con las transacciones
     private List<Transaction> transactions;
 }

@@ -1,6 +1,7 @@
 package com.footballmarketplace.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,12 +36,14 @@ public class Player extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
-    @JsonBackReference 
+    @JsonBackReference // Evita la serialización cíclica con el propietario
     private User owner;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // Evita la serialización cíclica con los ítems del carrito
     private List<CartItem> cartItems;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // Evita la serialización cíclica con las transacciones
     private List<Transaction> transactions;
 }

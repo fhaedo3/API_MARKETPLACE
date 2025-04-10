@@ -1,6 +1,7 @@
 package com.footballmarketplace.domain.model;
 
 import com.footballmarketplace.domain.enums.Role;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -50,16 +51,19 @@ public class User extends Auditable implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // Marca esta relación como la parte "gestora" para evitar ciclos
+    @JsonManagedReference // Gestiona la relación con los jugadores
     private List<Player> players;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // Evita la serialización cíclica con los carritos
     private List<ShoppingCart> shoppingCarts;
 
     @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // Evita la serialización cíclica con las compras
     private List<Transaction> purchases;
 
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // Evita la serialización cíclica con las ventas
     private List<Transaction> sales;
 
     // Métodos de la interfaz UserDetails
