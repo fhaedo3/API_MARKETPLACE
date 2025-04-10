@@ -1,5 +1,6 @@
 package com.footballmarketplace.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,11 +35,12 @@ public class Player extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
+    @JsonBackReference 
     private User owner;
 
-    @OneToMany(mappedBy = "player")
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems;
 
-    @OneToMany(mappedBy = "player")
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions;
 }
