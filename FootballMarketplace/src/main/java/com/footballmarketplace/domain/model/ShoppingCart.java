@@ -16,13 +16,13 @@ public class ShoppingCart extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference // Evita la serialización cíclica con el usuario
+    @JsonBackReference 
     private User user;
 
     @Column(nullable = false)
     private String status;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // Gestiona la relación con los ítems del carrito
+    @JsonManagedReference 
     private List<CartItem> cartItems = new ArrayList<>();
 }

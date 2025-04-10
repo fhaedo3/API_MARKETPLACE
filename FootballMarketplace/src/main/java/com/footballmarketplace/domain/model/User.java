@@ -51,22 +51,22 @@ public class User extends Auditable implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // Gestiona la relación con los jugadores
+    @JsonManagedReference 
     private List<Player> players;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference // Evita la serialización cíclica con los carritos
+    @JsonBackReference 
     private List<ShoppingCart> shoppingCarts;
 
     @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference // Evita la serialización cíclica con las compras
+    @JsonBackReference 
     private List<Transaction> purchases;
 
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference // Evita la serialización cíclica con las ventas
+    @JsonBackReference 
     private List<Transaction> sales;
 
-    // Métodos de la interfaz UserDetails
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();

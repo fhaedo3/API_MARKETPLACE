@@ -52,13 +52,13 @@ public class TransactionService {
         Player player = playerService.getPlayerById(playerId).orElse(null);
 
         if (buyer != null && seller != null && player != null) {
-            // Crear operación
+            
             Operation operation = new Operation();
             operation.setDescription("Player transfer from " + seller.getUsername() + " to " + buyer.getUsername());
             operation.setTimestamp(LocalDateTime.now());
             Operation savedOperation = operationService.addOperation(operation);
 
-            // Crear transacción
+            
             Transaction transaction = new Transaction();
             transaction.setBuyer(buyer);
             transaction.setSeller(seller);
@@ -67,7 +67,7 @@ public class TransactionService {
             transaction.setDate(LocalDateTime.now());
             transaction.setTotal(total);
 
-            // Cambiar propietario del jugador
+            
             player.setOwner(buyer);
             player.setIsForSale(false);
             playerService.addPlayer(player);
@@ -82,7 +82,7 @@ public class TransactionService {
     }
 
     public List<Transaction> getTransactionsBySellerId(Long sellerId) {
-        return transactionRepository.findBySellerId(sellerId); // Fixed method name
+        return transactionRepository.findBySellerId(sellerId); 
     }
 
     public List<Transaction> getTransactionsByPlayerId(Long playerId) {

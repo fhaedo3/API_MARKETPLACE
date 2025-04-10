@@ -14,22 +14,22 @@ public class Transaction extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "buyer_id", nullable = false)
-    @JsonManagedReference // Permite serializar el comprador
+    @JsonManagedReference 
     private User buyer;
 
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
-    @JsonManagedReference // Permite serializar el vendedor
+    @JsonManagedReference 
     private User seller;
 
     @ManyToOne
     @JoinColumn(name = "player_id", nullable = false)
-    @JsonManagedReference // Permite serializar el jugador
+    @JsonManagedReference 
     private Player player;
 
     @ManyToOne
     @JoinColumn(name = "operation_id", nullable = false)
-    @JsonManagedReference // Permite serializar la operación
+    @JsonManagedReference 
     private Operation operation;
 
     @Column(nullable = false)

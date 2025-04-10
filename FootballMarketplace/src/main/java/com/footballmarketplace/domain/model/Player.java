@@ -36,14 +36,14 @@ public class Player extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
-    @JsonBackReference // Evita la serialización cíclica con el propietario
+    @JsonBackReference 
     private User owner;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference // Evita la serialización cíclica con los ítems del carrito
+    @JsonBackReference 
     private List<CartItem> cartItems;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference // Evita la serialización cíclica con las transacciones
+    @JsonBackReference 
     private List<Transaction> transactions;
 }

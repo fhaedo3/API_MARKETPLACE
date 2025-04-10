@@ -26,11 +26,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(req -> req
                 .requestMatchers(
-                    "/api/v1/auth/**", // Permitir acceso a los endpoints de autenticación
-                    "/swagger-ui/**", // Permitir acceso a Swagger UI
-                    "/v3/api-docs/**" // Permitir acceso a la documentación de OpenAPI
+                    "/api/v1/auth/**", 
+                    "/swagger-ui/**", 
+                    "/v3/api-docs/**" 
                 ).permitAll()
-                .anyRequest().authenticated() // Proteger todos los demás endpoints
+                .anyRequest().authenticated() 
             )
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .authenticationProvider(authenticationProvider)
