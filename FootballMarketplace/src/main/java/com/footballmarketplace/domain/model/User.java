@@ -5,9 +5,15 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User extends Auditable {
@@ -48,4 +54,13 @@ public class User extends Auditable {
 
     @OneToMany(mappedBy = "seller")
     private List<Transaction> sales;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
 }
