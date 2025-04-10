@@ -21,10 +21,10 @@ public class ApplicationConfig {
     private final IUserRepository repository;
 
     @Bean
-    public UserDetailService userDetailService() {
+    public UserDetailsService userDetailsService() {
         return username -> repository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-    }
+    } 
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
