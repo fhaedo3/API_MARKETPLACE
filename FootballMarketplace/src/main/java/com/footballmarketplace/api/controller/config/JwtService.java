@@ -44,6 +44,7 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSecretKey())
                 .compact();
+                
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
