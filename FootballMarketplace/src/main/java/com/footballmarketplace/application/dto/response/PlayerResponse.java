@@ -1,9 +1,10 @@
-package com.footballmarketplace.application.dto;
+package com.footballmarketplace.application.dto.response;
 
 import lombok.Data;
 
 @Data
-public class PlayerRequest {
+public class PlayerResponse {
+    private Long id;
     private String name;
     private String position;
     private Integer rating;

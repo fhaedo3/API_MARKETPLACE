@@ -1,6 +1,7 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.TransactionRequest;
+import com.footballmarketplace.application.dto.request.TransactionRequest;
+import com.footballmarketplace.application.dto.response.TransactionResponse;
 import com.footballmarketplace.application.service.*;
 import com.footballmarketplace.domain.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/transactions")
@@ -29,57 +28,61 @@ public class TransactionController {
     private OperationService operationService;
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> listTransactions() {
+    public ResponseEntity<List<TransactionResponse>> listTransactions() {
         List<Transaction> transactions = transactionService.getAllTransactions();
-        return ResponseEntity.ok(transactions);
+        List<TransactionResponse> response = transactions.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long transactionId) {
+    public ResponseEntity<TransactionResponse> getTransactionById(@PathVariable Long transactionId) {
         return transactionService.getTransactionById(transactionId)
+                .map(this::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/buyer/{buyerId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByBuyerId(@PathVariable Long buyerId) {
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByBuyerId(@PathVariable Long buyerId) {
         List<Transaction> transactions = transactionService.getTransactionsByBuyerId(buyerId);
-        return ResponseEntity.ok(transactions);
+        List<TransactionResponse> response = transactions.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/seller/{sellerId}")
-    public ResponseEntity<List<Transaction>> getTransactionsBySellerId(@PathVariable Long sellerId) {
+    public ResponseEntity<List<TransactionResponse>> getTransactionsBySellerId(@PathVariable Long sellerId) {
         List<Transaction> transactions = transactionService.getTransactionsBySellerId(sellerId);
-        return ResponseEntity.ok(transactions);
+        List<TransactionResponse> response = transactions.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/player/{playerId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByPlayerId(@PathVariable Long playerId) {
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByPlayerId(@PathVariable Long playerId) {
         List<Transaction> transactions = transactionService.getTransactionsByPlayerId(playerId);
-        return ResponseEntity.ok(transactions);
+        List<TransactionResponse> response = transactions.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> addTransaction(@RequestBody TransactionRequest request) {
-        Optional<User> buyerOpt = userService.getUserById(request.getBuyerId());
-        Optional<User> sellerOpt = userService.getUserById(request.getSellerId());
-        Optional<Player> playerOpt = playerService.getPlayerById(request.getPlayerId());
-        Optional<Operation> operationOpt = operationService.getOperationById(request.getOperationId());
-
-        if (buyerOpt.isEmpty() || sellerOpt.isEmpty() || playerOpt.isEmpty() || operationOpt.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<TransactionResponse> addTransaction(@RequestBody TransactionRequest request) {
+        User buyer = userService.getUserById(request.getBuyerId());
+        User seller = userService.getUserById(request.getSellerId());
+        Player player = playerService.getPlayerById(request.getPlayerId()).orElseThrow(() ->
+            new IllegalArgumentException("Player not found with ID: " + request.getPlayerId()));
+        Operation operation = operationService.getOperationById(request.getOperationId()).orElseThrow(() ->
+            new IllegalArgumentException("Operation not found with ID: " + request.getOperationId()));
 
         Transaction transaction = new Transaction();
-        transaction.setBuyer(buyerOpt.get());
-        transaction.setSeller(sellerOpt.get());
-        transaction.setPlayer(playerOpt.get());
-        transaction.setOperation(operationOpt.get());
-        transaction.setDate(LocalDateTime.now());
+        transaction.setBuyer(buyer);
+        transaction.setSeller(seller);
+        transaction.setPlayer(player);
+        transaction.setOperation(operation);
+        transaction.setDate(java.time.LocalDateTime.now());
         transaction.setTotal(request.getTotal());
 
         Transaction savedTransaction = transactionService.addTransaction(transaction);
-        return ResponseEntity.created(URI.create("/transactions/" + savedTransaction.getId())).body(savedTransaction);
+        TransactionResponse response = toResponse(savedTransaction);
+        return ResponseEntity.created(URI.create("/transactions/" + savedTransaction.getId())).body(response);
     }
 
     @PostMapping("/create-transfer")
@@ -100,5 +103,17 @@ public class TransactionController {
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long transactionId) {
         transactionService.deleteTransaction(transactionId);
         return ResponseEntity.noContent().build();
+    }
+
+    private TransactionResponse toResponse(Transaction transaction) {
+        TransactionResponse response = new TransactionResponse();
+        response.setId(transaction.getId());
+        response.setBuyerId(transaction.getBuyer() != null ? transaction.getBuyer().getId() : null);
+        response.setSellerId(transaction.getSeller() != null ? transaction.getSeller().getId() : null);
+        response.setPlayerId(transaction.getPlayer() != null ? transaction.getPlayer().getId() : null);
+        response.setOperationId(transaction.getOperation() != null ? transaction.getOperation().getId() : null);
+        response.setTotal(transaction.getTotal());
+        response.setTimestamp(transaction.getDate() != null ? transaction.getDate().toString() : null);
+        return response;
     }
 }

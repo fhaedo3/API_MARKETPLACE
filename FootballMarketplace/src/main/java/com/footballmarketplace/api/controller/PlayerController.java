@@ -1,6 +1,6 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.PlayerRequest;
+import com.footballmarketplace.application.dto.request.PlayerRequest;
 import com.footballmarketplace.application.service.PlayerService;
 import com.footballmarketplace.application.service.UserService;
 import com.footballmarketplace.domain.model.Player;
@@ -58,13 +58,12 @@ public class PlayerController {
         player.setPrice(playerRequest.getPrice());
         player.setIsForSale(playerRequest.getIsForSale());
         player.setImage(playerRequest.getImage());
-
-        // Establecer el dueño si existe
+    
         if (playerRequest.getOwnerId() != null) {
-            Optional<User> ownerOpt = userService.getUserById(playerRequest.getOwnerId());
-            ownerOpt.ifPresent(player::setOwner);
+            User owner = userService.getUserById(playerRequest.getOwnerId());
+            player.setOwner(owner);
         }
-
+    
         Player savedPlayer = playerService.addPlayer(player);
         return ResponseEntity.created(URI.create("/players/" + savedPlayer.getId())).body(savedPlayer);
     }

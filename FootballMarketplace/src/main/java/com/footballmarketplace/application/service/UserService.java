@@ -8,7 +8,6 @@ import com.footballmarketplace.domain.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -23,8 +22,9 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
     }
 
     public User addUser(User user) {
@@ -32,38 +32,38 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + id);
+        }
         userRepository.deleteById(id);
     }
 
     public List<Player> getUserPlayers(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getPlayers();
+        User user = getUserById(userId);
+        if (user.getPlayers() == null) {
+            throw new IllegalArgumentException("El usuario no tiene jugadores asociados.");
         }
-        return List.of();
+        return user.getPlayers();
     }
 
     public List<ShoppingCart> getUserCarts(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getShoppingCarts();
+        User user = getUserById(userId);
+        if (user.getShoppingCarts() == null) {
+            throw new IllegalArgumentException("El usuario no tiene carritos asociados.");
         }
-        return List.of();
+        return user.getShoppingCarts();
     }
 
     public List<Transaction> getUserPurchases(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getPurchases();
+        User user = getUserById(userId);
+        if (user.getPurchases() == null) {
+            throw new IllegalArgumentException("El usuario no tiene compras asociadas.");
         }
-        return List.of();
+        return user.getPurchases();
     }
 
     public List<Transaction> getUserSales(Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getSales();
-        }
-        return List.of();
+        User user = getUserById(userId);
+        return user.getSales();
     }
 }

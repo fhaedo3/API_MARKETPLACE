@@ -34,34 +34,49 @@ public class CartItemService {
     }
 
     public CartItem addCartItem(CartItem cartItem) {
+        if (cartItem.getCart() == null) {
+            throw new IllegalArgumentException("El carrito no existe.");
+        }
+        if (cartItem.getPlayer() == null) {
+            throw new IllegalArgumentException("El jugador no existe.");
+        }
         return cartItemRepository.save(cartItem);
     }
 
     public void deleteCartItem(Long id) {
+        if (!cartItemRepository.existsById(id)) {
+            throw new IllegalArgumentException("El item del carrito no existe.");
+        }
         cartItemRepository.deleteById(id);
     }
 
     public List<CartItem> getCartItemsByCartId(Long cartId) {
+        if (shoppingCartService.getShoppingCartById(cartId).isEmpty()) {
+            throw new IllegalArgumentException("El carrito no existe.");
+        }
         return cartItemRepository.findByCartId(cartId);
     }
 
     public CartItem addPlayerToCart(Long cartId, Long playerId) {
-        ShoppingCart cart = shoppingCartService.getShoppingCartById(cartId).orElse(null);
-        Player player = playerService.getPlayerById(playerId).orElse(null);
+        ShoppingCart cart = shoppingCartService.getShoppingCartById(cartId)
+            .orElseThrow(() -> new IllegalArgumentException("El carrito no existe."));
+        Player player = playerService.getPlayerById(playerId)
+            .orElseThrow(() -> new IllegalArgumentException("El jugador no existe."));
 
-        if (cart != null && player != null && player.getIsForSale()) {
-            CartItem cartItem = new CartItem();
-            cartItem.setCart(cart);
-            cartItem.setPlayer(player);
-            return cartItemRepository.save(cartItem);
+        if (!player.getIsForSale()) {
+            throw new IllegalStateException("El jugador no está en venta.");
         }
-        return null;
+        CartItem cartItem = new CartItem();
+        cartItem.setCart(cart);
+        cartItem.setPlayer(player);
+        return cartItemRepository.save(cartItem);
     }
 
     public void removePlayerFromCart(Long cartId, Long playerId) {
         CartItem cartItem = cartItemRepository.findByCartIdAndPlayerId(cartId, playerId);
-        if (cartItem != null) {
-            deleteCartItem(cartItem.getId());
+        if (cartItem == null) {
+            throw new IllegalArgumentException("El item del carrito no existe para ese carrito y jugador.");
         }
+        deleteCartItem(cartItem.getId());
     }
 }

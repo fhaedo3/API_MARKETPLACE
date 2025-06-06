@@ -1,6 +1,7 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.CartItemRequest;
+import com.footballmarketplace.application.dto.request.CartItemRequest;
+import com.footballmarketplace.application.dto.response.CartItemResponse;
 import com.footballmarketplace.application.service.CartItemService;
 import com.footballmarketplace.application.service.PlayerService;
 import com.footballmarketplace.application.service.ShoppingCartService;
@@ -29,26 +30,29 @@ public class CartItemController {
     private PlayerService playerService;
 
     @GetMapping
-    public ResponseEntity<List<CartItem>> listCartItems() {
+    public ResponseEntity<List<CartItemResponse>> listCartItems() {
         List<CartItem> items = cartItemService.getAllCartItems();
-        return ResponseEntity.ok(items);
+        List<CartItemResponse> response = items.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{cartItemId}")
-    public ResponseEntity<CartItem> getCartItemById(@PathVariable Long cartItemId) {
+    public ResponseEntity<CartItemResponse> getCartItemById(@PathVariable Long cartItemId) {
         return cartItemService.getCartItemById(cartItemId)
+                .map(this::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/cart/{cartId}")
-    public ResponseEntity<List<CartItem>> getCartItemsByCartId(@PathVariable Long cartId) {
+    public ResponseEntity<List<CartItemResponse>> getCartItemsByCartId(@PathVariable Long cartId) {
         List<CartItem> items = cartItemService.getCartItemsByCartId(cartId);
-        return ResponseEntity.ok(items);
+        List<CartItemResponse> response = items.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<CartItem> addCartItem(@RequestBody CartItemRequest cartItemRequest) {
+    public ResponseEntity<CartItemResponse> addCartItem(@RequestBody CartItemRequest cartItemRequest) {
         Optional<ShoppingCart> cartOpt = shoppingCartService.getShoppingCartById(cartItemRequest.getCartId());
         Optional<Player> playerOpt = playerService.getPlayerById(cartItemRequest.getPlayerId());
 
@@ -61,7 +65,7 @@ public class CartItemController {
         cartItem.setPlayer(playerOpt.get());
 
         CartItem savedItem = cartItemService.addCartItem(cartItem);
-        return ResponseEntity.created(URI.create("/cart-items/" + savedItem.getId())).body(savedItem);
+        return ResponseEntity.created(URI.create("/cart-items/" + savedItem.getId())).body(toResponse(savedItem));
     }
 
     @PostMapping("/add-to-cart")
@@ -83,5 +87,13 @@ public class CartItemController {
     public ResponseEntity<Void> deleteCartItem(@PathVariable Long cartItemId) {
         cartItemService.deleteCartItem(cartItemId);
         return ResponseEntity.noContent().build();
+    }
+
+    private CartItemResponse toResponse(CartItem cartItem) {
+        CartItemResponse response = new CartItemResponse();
+        response.setId(cartItem.getId());
+        response.setCartId(cartItem.getCart() != null ? cartItem.getCart().getId() : null);
+        response.setPlayerId(cartItem.getPlayer() != null ? cartItem.getPlayer().getId() : null);
+        return response;
     }
 }
