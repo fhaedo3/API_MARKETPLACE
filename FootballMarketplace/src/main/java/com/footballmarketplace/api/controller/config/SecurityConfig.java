@@ -24,18 +24,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(req -> req
-                .requestMatchers(
-                    "/api/v1/auth/**", 
-                    "/swagger-ui/**", 
-                    "/v3/api-docs/**" 
-                ).permitAll()
-                .anyRequest().authenticated() 
-            )
+            .authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+    .anyRequest().authenticated()
+)
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .authenticationProvider(authenticationProvider)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-    
+
         return http.build();
     }
 }

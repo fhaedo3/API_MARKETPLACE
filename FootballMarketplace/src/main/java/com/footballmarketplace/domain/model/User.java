@@ -68,9 +68,9 @@ public class User extends Auditable implements UserDetails {
 
     
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
-    }
+public Collection<? extends GrantedAuthority> getAuthorities() {
+    return Collections.emptyList();
+}
 
     @Override
     public String getPassword() {

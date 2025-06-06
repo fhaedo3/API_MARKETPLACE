@@ -1,6 +1,7 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.UserRequest;
+import com.footballmarketplace.application.dto.request.UserRequest;
+import com.footballmarketplace.application.dto.response.UserResponse;
 import com.footballmarketplace.application.service.UserService;
 import com.footballmarketplace.domain.model.Player;
 import com.footballmarketplace.domain.model.ShoppingCart;
@@ -22,15 +23,16 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> listUsers() {
+    public ResponseEntity<List<UserResponse>> listUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        List<UserResponse> response = users.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(toResponse(user));
     }
 
     @GetMapping("/{userId}/players")
@@ -77,5 +79,18 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    private UserResponse toResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setTeamName(user.getTeamName());
+        response.setYearFounded(user.getYearFounded());
+        response.setStadium(user.getStadium());
+        response.setCity(user.getCity());
+        response.setRole(user.getRole() != null ? user.getRole().name() : null);
+        return response;
     }
 }

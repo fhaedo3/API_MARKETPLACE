@@ -19,10 +19,11 @@ import lombok.RequiredArgsConstructor;
 public class ApplicationConfig {
     private final IUserRepository repository;
 
-    @Bean
+  @Bean
     public UserDetailsService userDetailsService() {
-        return username -> repository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
+    return username -> repository.findByEmail(username)
+        .or(() -> repository.findByUsername(username))
+        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
     }
 
     @Bean
@@ -42,5 +43,4 @@ public class ApplicationConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }

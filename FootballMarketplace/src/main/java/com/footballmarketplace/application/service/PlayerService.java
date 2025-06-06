@@ -24,30 +24,39 @@ public class PlayerService {
     }
 
     public Optional<Player> getPlayerById(Long id) {
+        if (!playerRepository.existsById(id)) {
+            throw new IllegalArgumentException("Jugador no encontrado con ID: " + id);
+        }
         return playerRepository.findById(id);
     }
 
     public Player addPlayer(Player player) {
+        if (player == null) {
+            throw new IllegalArgumentException("El jugador no puede ser nulo.");
+        }
         return playerRepository.save(player);
     }
 
     public void deletePlayer(Long id) {
+        if (!playerRepository.existsById(id)) {
+            throw new IllegalArgumentException("Jugador no encontrado con ID: " + id);
+        }
         playerRepository.deleteById(id);
     }
 
     public List<Player> getPlayersByOwnerId(Long ownerId) {
+        if (userService.getUserById(ownerId) == null) {
+            throw new IllegalArgumentException("El usuario dueño no existe con ID: " + ownerId);
+        }
         return playerRepository.findByOwnerId(ownerId);
     }
 
     public Player updatePlayerOwner(Long playerId, Long ownerId) {
-        Optional<Player> playerOpt = playerRepository.findById(playerId);
-        if (playerOpt.isPresent()) {
-            Player player = playerOpt.get();
-            User owner = userService.getUserById(ownerId);
-            player.setOwner(owner);
-            return playerRepository.save(player);
-        }
-        return null;
+        Player player = playerRepository.findById(playerId)
+            .orElseThrow(() -> new IllegalArgumentException("Jugador no encontrado con ID: " + playerId));
+        User owner = userService.getUserById(ownerId);
+        player.setOwner(owner);
+        return playerRepository.save(player);
     }
 
     public List<Player> getPlayersForSale() {

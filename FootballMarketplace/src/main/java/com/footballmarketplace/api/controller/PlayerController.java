@@ -1,6 +1,6 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.PlayerRequest;
+import com.footballmarketplace.application.dto.request.PlayerRequest;
 import com.footballmarketplace.application.service.PlayerService;
 import com.footballmarketplace.application.service.UserService;
 import com.footballmarketplace.domain.model.Player;

@@ -1,6 +1,7 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.ShoppingCartRequest;
+import com.footballmarketplace.application.dto.request.ShoppingCartRequest;
+import com.footballmarketplace.application.dto.response.ShoppingCartResponse;
 import com.footballmarketplace.application.service.ShoppingCartService;
 import com.footballmarketplace.application.service.UserService;
 import com.footballmarketplace.domain.model.ShoppingCart;
@@ -23,36 +24,34 @@ public class ShoppingCartController {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<ShoppingCart>> listShoppingCarts() {
+    public ResponseEntity<List<ShoppingCartResponse>> listShoppingCarts() {
         List<ShoppingCart> carts = shoppingCartService.getAllShoppingCarts();
-        return ResponseEntity.ok(carts);
+        List<ShoppingCartResponse> response = carts.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{cartId}")
-    public ResponseEntity<ShoppingCart> getShoppingCartById(@PathVariable Long cartId) {
+    public ResponseEntity<ShoppingCartResponse> getShoppingCartById(@PathVariable Long cartId) {
         return shoppingCartService.getShoppingCartById(cartId)
+                .map(this::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
-
     @GetMapping("/user/{userId}/active")
-    public ResponseEntity<ShoppingCart> getActiveCartForUser(@PathVariable Long userId) {
+    public ResponseEntity<ShoppingCartResponse> getActiveCartForUser(@PathVariable Long userId) {
         ShoppingCart cart = shoppingCartService.getActiveCartForUser(userId);
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(toResponse(cart));
     }
 
     @PostMapping
-    public ResponseEntity<ShoppingCart> addShoppingCart(@RequestBody ShoppingCartRequest request) {
+    public ResponseEntity<ShoppingCartResponse> addShoppingCart(@RequestBody ShoppingCartRequest request) {
         ShoppingCart cart = new ShoppingCart();
-        User user = userService.getUserById(request.getUserId()); 
-
+        User user = userService.getUserById(request.getUserId());
         cart.setUser(user);
         cart.setStatus(request.getStatus());
-
         ShoppingCart savedCart = shoppingCartService.addShoppingCart(cart);
-        return ResponseEntity.created(URI.create("/shopping-carts/" + savedCart.getId())).body(savedCart);
+        return ResponseEntity.created(URI.create("/shopping-carts/" + savedCart.getId())).body(toResponse(savedCart));
     }
 
     @PutMapping("/{cartId}/checkout")
@@ -68,5 +67,13 @@ public class ShoppingCartController {
     public ResponseEntity<Void> deleteShoppingCart(@PathVariable Long cartId) {
         shoppingCartService.deleteShoppingCart(cartId);
         return ResponseEntity.noContent().build();
+    }
+
+    private ShoppingCartResponse toResponse(ShoppingCart cart) {
+        ShoppingCartResponse response = new ShoppingCartResponse();
+        response.setId(cart.getId());
+        response.setUserId(cart.getUser() != null ? cart.getUser().getId() : null);
+        response.setStatus(cart.getStatus());
+        return response;
     }
 }

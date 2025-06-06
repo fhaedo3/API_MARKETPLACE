@@ -35,46 +35,55 @@ public class TransactionService {
     }
 
     public Optional<Transaction> getTransactionById(Long id) {
+        if (!transactionRepository.existsById(id)) {
+            throw new IllegalArgumentException("Transacción no encontrada con ID: " + id);
+        }
         return transactionRepository.findById(id);
     }
 
     public Transaction addTransaction(Transaction transaction) {
+        if (transaction == null) {
+            throw new IllegalArgumentException("La transacción no puede ser nula.");
+        }
         return transactionRepository.save(transaction);
     }
 
     public void deleteTransaction(Long id) {
+        if (!transactionRepository.existsById(id)) {
+            throw new IllegalArgumentException("Transacción no encontrada con ID: " + id);
+        }
         transactionRepository.deleteById(id);
     }
 
     public Transaction createTransaction(Long buyerId, Long sellerId, Long playerId, Double total) {
         User buyer = userService.getUserById(buyerId);
         User seller = userService.getUserById(sellerId);
-        Player player = playerService.getPlayerById(playerId).orElse(null);
-
-        if (buyer != null && seller != null && player != null) {
-            
-            Operation operation = new Operation();
-            operation.setDescription("Player transfer from " + seller.getUsername() + " to " + buyer.getUsername());
-            operation.setTimestamp(LocalDateTime.now());
-            Operation savedOperation = operationService.addOperation(operation);
-
-            
-            Transaction transaction = new Transaction();
-            transaction.setBuyer(buyer);
-            transaction.setSeller(seller);
-            transaction.setPlayer(player);
-            transaction.setOperation(savedOperation);
-            transaction.setDate(LocalDateTime.now());
-            transaction.setTotal(total);
-
-            
-            player.setOwner(buyer);
-            player.setIsForSale(false);
-            playerService.addPlayer(player);
-
-            return transactionRepository.save(transaction);
+        Player player = playerService.getPlayerById(playerId)
+            .orElseThrow(() -> new IllegalArgumentException("Jugador no encontrado con ID: " + playerId));
+        if (total == null || total <= 0) {
+            throw new IllegalArgumentException("El total debe ser mayor a 0.");
         }
-        return null;
+
+        Operation operation = new Operation();
+        operation.setDescription("Player transfer from " + seller.getUsername() + " to " + buyer.getUsername());
+        operation.setTimestamp(LocalDateTime.now());
+        Operation savedOperation = operationService.addOperation(operation);
+
+
+        Transaction transaction = new Transaction();
+        transaction.setBuyer(buyer);
+        transaction.setSeller(seller);
+        transaction.setPlayer(player);
+        transaction.setOperation(savedOperation);
+        transaction.setDate(LocalDateTime.now());
+        transaction.setTotal(total);
+
+
+        player.setOwner(buyer);
+        player.setIsForSale(false);
+        playerService.addPlayer(player);
+
+        return transactionRepository.save(transaction);
     }
 
     public List<Transaction> getTransactionsByBuyerId(Long buyerId) {

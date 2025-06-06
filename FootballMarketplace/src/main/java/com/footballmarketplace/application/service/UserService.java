@@ -24,7 +24,7 @@ public class UserService {
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
     }
 
     public User addUser(User user) {
@@ -32,21 +32,33 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + id);
+        }
         userRepository.deleteById(id);
     }
 
     public List<Player> getUserPlayers(Long userId) {
         User user = getUserById(userId);
+        if (user.getPlayers() == null) {
+            throw new IllegalArgumentException("El usuario no tiene jugadores asociados.");
+        }
         return user.getPlayers();
     }
 
     public List<ShoppingCart> getUserCarts(Long userId) {
         User user = getUserById(userId);
+        if (user.getShoppingCarts() == null) {
+            throw new IllegalArgumentException("El usuario no tiene carritos asociados.");
+        }
         return user.getShoppingCarts();
     }
 
     public List<Transaction> getUserPurchases(Long userId) {
         User user = getUserById(userId);
+        if (user.getPurchases() == null) {
+            throw new IllegalArgumentException("El usuario no tiene compras asociadas.");
+        }
         return user.getPurchases();
     }
 

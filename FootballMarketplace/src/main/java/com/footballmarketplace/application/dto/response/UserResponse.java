@@ -1,15 +1,16 @@
-package com.footballmarketplace.application.dto;
+package com.footballmarketplace.application.dto.response;
 
 import lombok.Data;
 
 @Data
-public class UserRequest {
+public class UserResponse {
+    private Long id;
     private String username;
     private String email;
-    private String password;
     private String teamName;
     private Integer yearFounded;
     private String stadium;
     private String city;
-    private String role; 
+    private String role;
+    // Agrega más campos si es necesario
 }

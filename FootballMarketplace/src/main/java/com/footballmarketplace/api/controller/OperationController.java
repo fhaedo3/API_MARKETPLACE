@@ -1,6 +1,6 @@
 package com.footballmarketplace.api.controller;
 
-import com.footballmarketplace.application.dto.OperationRequest;
+import com.footballmarketplace.application.dto.request.OperationRequest;
 import com.footballmarketplace.application.service.OperationService;
 import com.footballmarketplace.domain.model.Operation;
 import com.footballmarketplace.domain.model.Transaction;

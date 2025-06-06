@@ -25,4 +25,7 @@ public class ShoppingCart extends Auditable {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference 
     private List<CartItem> cartItems = new ArrayList<>();
+
+    @Column
+    private java.time.LocalDateTime expiration;
 }

@@ -2,6 +2,8 @@ package com.footballmarketplace.api.controller.config;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +16,8 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 
+import com.footballmarketplace.domain.model.User;
+
 @Service
 public class JwtService {
 
@@ -23,12 +27,21 @@ public class JwtService {
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
-    public String generateToken(UserDetails userDetails) {
-        return buildToken(userDetails, jwtExpiration);
+    public String generateToken(User user) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("teamName", user.getTeamName());
+        extraClaims.put("role", user.getRole() != null ? user.getRole().name() : null);
+        return buildToken(extraClaims, user, jwtExpiration);
     }
 
-    private String buildToken(UserDetails userDetails, long expiration) {
+    // Método original para UserDetails (por compatibilidad)
+    public String generateToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, jwtExpiration);
+    }
+
+    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         return Jwts.builder()
+                .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
