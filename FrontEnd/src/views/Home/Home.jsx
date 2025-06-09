@@ -1,46 +1,44 @@
 import './Home.css';
 import PlayerCard from '../../components/PlayerCard/PlayerCard.jsx';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Home = () => {
-  const mockPlayers = [
-    {
-      name: 'Lionel Messi',
-      position: 'RW',
-      rating: 93,
-      characteristics: ['Pace 85', 'Dribbling 96', 'Passing 91', 'Shooting 92'],
-      price: 10000000,
-      isForSale: true,
-      image: '/images/m.png',
-    },
-    {
-      name: 'Sergio Ramos',
-      position: 'ST',
-      rating: 91,
-      characteristics: ['Pace 87', 'Shooting 94', 'Heading 85', 'Dribbling 89'],
-      price: 9000000,
-      isForSale: false,
-      image: '/images/sergioramos.png',
-    },
-    {
-      name: 'Vinicius Jr.',
-      position: 'LW',
-      rating: 92,
-      characteristics: ['Pace 97', 'Dribbling 92', 'Shooting 88', 'Passing 84'],
-      price: 12000000,
-      isForSale: true,
-      image: '/images/vinicius.png',
-    },
-    {
-      name: 'Juan Roman Riquelme.',
-      position: 'LW',
-      rating: 92,
-      characteristics: ['Pace 97', 'Dribbling 92', 'Shooting 88', 'Passing 84'],
-      price: 12000000,
-      isForSale: true,
-      image: '/images/riquelme.png',
-    },
-  ];
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // URL basada en tu PlayerController - endpoint GET /players
+    const URL = 'http://localhost:8080/players/public';
+    fetch(URL)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Mapear los datos del backend al formato que espera PlayerCard
+        const mappedPlayers = data.map(player => ({
+          id: player.id,
+          name: player.name,
+          position: player.position,
+          rating: player.rating,
+          characteristics: player.characteristics ? player.characteristics.split(',') : [],
+          price: player.price,
+          isForSale: player.isForSale,
+          image: player.image || '/images/default-player.png' // imagen por defecto si no tiene
+        }));
+
+        setPlayers(mappedPlayers);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error al cargar los jugadores:", error);
+        setError(error.message);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="home">
@@ -106,11 +104,55 @@ const Home = () => {
           <div className="player-container">
             <section className="player-grid-section">
               <h2 className="section-title">Top Players</h2>
-              <div className="player-card-grid">
-                {mockPlayers.map((player, index) => (
-                  <PlayerCard key={index} {...player} />
-                ))}
-              </div>
+
+              {loading && (
+                <div className="loading-message" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <p>Cargando jugadores...</p>
+                </div>
+              )}
+
+              {error && (
+                <div className="error-message" style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>
+                  <p>Error al cargar los jugadores: {error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      marginTop: '1rem'
+                    }}
+                  >
+                    Intentar de nuevo
+                  </button>
+                </div>
+              )}
+
+              {!loading && !error && players.length === 0 && (
+                <div className="no-players-message" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <p>No hay jugadores disponibles</p>
+                </div>
+              )}
+
+              {!loading && !error && players.length > 0 && (
+                <div className="player-card-grid">
+                  {players.map((player) => (
+                    <PlayerCard
+                      key={player.id}
+                      name={player.name}
+                      position={player.position}
+                      rating={player.rating}
+                      characteristics={player.characteristics}
+                      price={player.price}
+                      isForSale={player.isForSale}
+                      image={player.image}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </section>

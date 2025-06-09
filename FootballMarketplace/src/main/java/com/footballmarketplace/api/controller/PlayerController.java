@@ -29,6 +29,12 @@ public class PlayerController {
         return ResponseEntity.ok(players);
     }
 
+    @GetMapping("/public")
+    public ResponseEntity<List<Player>> listPublicPlayers() {
+        List<Player> players = playerService.getAllPlayers();
+        return ResponseEntity.ok(players);
+    }
+
     @GetMapping("/{playerId}")
     public ResponseEntity<Player> getPlayerById(@PathVariable Long playerId) {
         return playerService.getPlayerById(playerId)
@@ -58,12 +64,12 @@ public class PlayerController {
         player.setPrice(playerRequest.getPrice());
         player.setIsForSale(playerRequest.getIsForSale());
         player.setImage(playerRequest.getImage());
-    
+
         if (playerRequest.getOwnerId() != null) {
             User owner = userService.getUserById(playerRequest.getOwnerId());
             player.setOwner(owner);
         }
-    
+
         Player savedPlayer = playerService.addPlayer(player);
         return ResponseEntity.created(URI.create("/players/" + savedPlayer.getId())).body(savedPlayer);
     }
