@@ -4,15 +4,13 @@ import './Header.css';
 
 // COMPONENTE HEADER
 const Header = () => {
-    return (
-        <header className="header">
-            <div className="container">
-                <div className="header-content">
-                    {/* LOGO */}
-                    <Link to="/" className="logo">
-                        <div className="logo-icon">🛒⚽</div>
-                        <span className="logo-text">SCOUTMARKET</span>
-                    </Link>
+  return (
+    <header className="header">
+      <div className="header-content">
+        {/* LOGO */}
+        <Link to="/" className="logo">
+            <img src="/images/Logo.png" alt="ScoutMarket Logo" className="logo-img" />
+        </Link>
 
                     {/* SEARCH BAR */}
                     <div className="search-container">
@@ -34,14 +32,16 @@ const Header = () => {
                     </nav>
 
                     {/* USER ACTIONS */}
-                    <div className="user-actions">
-                        <Link to="/cart" className="cart-icon">🛒</Link>
-                        <Link to="/login" className="login-btn btn btn-primary">Join</Link>
+                    <div className="join-button">
+                    <Link to="/join">
+                        <button className="join-btn">
+                        Join 👥
+                        </button>
+                    </Link>
                     </div>
                 </div>
-            </div>
-        </header>
-    );
-};
+                </header>
+            );
+        };
 
 export default Header;

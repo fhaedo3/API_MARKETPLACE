@@ -1,3 +1,4 @@
+import './Login.css';
 import { useState } from 'react';
 
 const Login = () => {
@@ -25,12 +26,11 @@ const Login = () => {
 
     return (
         <div className="login-page">
-            <div className="container">
+            <div className="containerlogin">
                 <div className="auth-container">
                     <div className="auth-header">
-                        <div className="logo">
-                            <div className="logo-icon">🛒⚽</div>
-                            <span>SCOUTMARKET</span>
+                        <div className="logologin">
+                        <img src="/images/Logo.png" alt="ScoutMarket Logo" />
                         </div>
                     </div>
 

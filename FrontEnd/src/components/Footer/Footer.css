@@ -36,6 +36,7 @@
 .footer-section {
   display: flex;
   flex-direction: column;
+  padding: 10;
 }
 
 .footer-title {
@@ -109,10 +110,12 @@
 }
 
 @media (max-width: 480px) {
-  .footer-content {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px; /* antes: var(--spacing-lg) */
+  margin-bottom: 20px;
+}
   
   .footer-logo {
     justify-content: center;

@@ -4,7 +4,7 @@
   --primary-green: #1a4d3a;
   --secondary-green: #2d5a2d;
   --accent-green: #4a7c4a;
-  --accent-orange: #ff9500;
+  --accent-orange: #FFC75F;
   --light-orange: #ffb347;
   
   /* Grises y neutros */
@@ -155,4 +155,77 @@ img {
     --font-size-2xl: 1.75rem;
     --font-size-xl: 1.25rem;
   }
+.home-hero-bg {
+  background-image: url("/images/d7eee6a7-8e3a-4ebb-8cef-248ebc3abae5.png");
+  background-size: cover;
+  background-position: center;
+  padding: var(--spacing-xl) 0;
+}
+
+.hero-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.hero-left {
+  flex: 1;
+  color: white;
+}
+
+.hero-title {
+  font-size: var(--font-size-3xl);
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-xs);
+}
+
+.hero-description {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-md);
+}
+
+.hero-search {
+  display: flex;
+  max-width: 400px;
+}
+
+.hero-search-input {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 20px 0 0 20px;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-base);
+}
+
+.hero-search-btn {
+  background-color: var(--accent-orange);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 20px 20px 0;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.hero-right {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.hero-player-img {
+  border-radius: 20px;
+  width: 100%;
+  height: auto;
+}
 }
