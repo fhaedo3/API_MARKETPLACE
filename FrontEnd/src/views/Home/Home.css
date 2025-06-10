@@ -1,11 +1,17 @@
+/* GENERAL STYLES */
+* {
+  box-sizing: border-box;
+}
+
 .hero {
   background-color: #014421;
   color: white;
   padding: 1rem 3rem;
-    border-radius: 80px; /* top-left, top-right, bottom-right, bottom-left */
+  border-radius: 80px;
 }
+
 .containerHome {
-  padding: 2rem 2rem; /* top-bottom / left-right */
+  padding: 2rem 2rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
@@ -26,28 +32,31 @@
 }
 
 .hero-content h1 {
-  font-size: 3rem;
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: bold;
   margin-bottom: 1rem;
 }
 
 .hero-content h2 {
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
   margin-bottom: 0.5rem;
 }
 
 .hero-content p {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   margin-bottom: 1.5rem;
 }
 
+/* SEARCH STYLES - IMPROVED */
 .hero-search {
   display: flex;
-  max-width: 400px;
+  max-width: 500px;
   margin-top: 1rem;
   background: white;
   border-radius: 30px;
   overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .hero-search-input {
@@ -57,6 +66,11 @@
   outline: none;
   font-size: 1rem;
   border-radius: 30px 0 0 30px;
+  color: #333;
+}
+
+.hero-search-input::placeholder {
+  color: #999;
 }
 
 .hero-search-btn {
@@ -68,13 +82,32 @@
   padding: 0.75rem 1.5rem;
   cursor: pointer;
   border-radius: 0 30px 30px 0;
+  transition: background-color 0.3s ease;
+}
+
+.hero-search-btn:hover {
+  background-color: #e6b355;
+}
+
+.hero-clear-btn {
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+}
+
+.hero-clear-btn:hover {
+  background-color: #e55a5a;
 }
 
 .hero-image-box {
   flex: 1;
   display: flex;
   justify-content: center;
-  
 }
 
 .hero-image-box img {
@@ -84,40 +117,65 @@
   border-radius: 20px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .hero-inner {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .hero-image-box img {
-    max-width: 90%;
-  }
+/* SEARCH INFO STYLES */
+.search-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f0f8ff;
+  border-radius: 10px;
+  border-left: 4px solid #014421;
 }
 
+.search-info p {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.clear-search-btn {
+  background-color: #014421;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.clear-search-btn:hover {
+  background-color: #115c2e;
+}
+
+.no-results-message {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
 
 /* HOW TO USE SECTION */
 .how-to-use {
   background-color: #014421;
   color: white;
   padding: 2rem 1rem;
-  border-radius: 80px; /* top-left, top-right, bottom-right, bottom-left */
+  border-radius: 80px;
 }
 
 .how-to-use-inner {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-    justify-content: center;
+  justify-content: center;
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
 }
 
 .how-to-use h3 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   margin-bottom: 2rem;
+  text-align: center;
+  width: 100%;
 }
 
 .how-to-use-box {
@@ -126,6 +184,7 @@
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .how-to-use-steps {
@@ -143,6 +202,11 @@
   font-weight: bold;
   color: white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.step:hover {
+  transform: translateY(-2px);
 }
 
 .step.selected {
@@ -164,22 +228,7 @@
   border-radius: 20px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .how-to-use-box {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .how-to-use-steps {
-    align-items: center;
-  }
-
-  .how-to-use-image img {
-    max-width: 90%;
-  }
-}
-/* Sevices*/
+/* SERVICES SECTION */
 .services {
   background-color: #f5f5f5;
   padding: 4rem 1rem;
@@ -188,25 +237,28 @@
 .services-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   margin-bottom: 2rem;
 }
 
 .services-header h3 {
-  font-size: 1.8rem;
+  font-size: clamp(1.5rem, 3vw, 1.8rem);
   font-weight: 600;
   color: #1a1a1a;
 }
 
 .services-icon {
   font-size: 1.5rem;
-  color: #f5a623; /* amarillo suave */
+  color: #f5a623;
 }
 
 .services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .service-card {
@@ -217,34 +269,31 @@
   border-radius: 10px;
   font-weight: bold;
   font-size: 1rem;
-  transition: transform 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
 
 .service-card:hover {
-  transform: scale(1.03);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .services-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Top Players*/
+/* TOP PLAYERS SECTION */
 .player-container {
   padding: 2rem;
   background-color: #fdf8f4;
-  overflow-x: auto; /* permite scroll horizontal */
+  overflow-x: auto;
 }
 
 .player-grid-section {
-  width: max-content;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .section-title {
   text-align: center;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   color: #2C2C2C;
   margin-bottom: 1rem;
   font-weight: bold;
@@ -257,17 +306,181 @@
   padding-bottom: 1rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc #f1f1f1;
 }
 
 .player-card-grid::-webkit-scrollbar {
   height: 8px;
 }
 
+.player-card-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
 .player-card-grid::-webkit-scrollbar-thumb {
   background-color: #ccc;
   border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.player-card-grid::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
 }
 
 .player-card-grid > * {
   scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .containerHome {
+    padding: 1.5rem 1.5rem;
+  }
+  
+  .hero {
+    padding: 1rem 2rem;
+    border-radius: 60px;
+  }
+  
+  .how-to-use {
+    border-radius: 60px;
+  }
+  
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 768px) {
+  .containerHome {
+    padding: 1rem 1rem;
+  }
+  
+  .hero {
+    padding: 1rem 1.5rem;
+    border-radius: 40px;
+  }
+  
+  .hero-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .hero-search {
+    max-width: 100%;
+  }
+  
+  .hero-image-box img {
+    max-width: 90%;
+  }
+  
+  .how-to-use {
+    padding: 1.5rem 1rem;
+    border-radius: 40px;
+  }
+  
+  .how-to-use-box {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .how-to-use-steps {
+    align-items: center;
+    max-width: 100%;
+  }
+  
+  .how-to-use-image img {
+    max-width: 90%;
+  }
+  
+  .services {
+    padding: 2rem 1rem;
+  }
+  
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .service-card {
+    padding: 2rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .player-container {
+    padding: 1rem;
+  }
+  
+  .player-card-grid {
+    gap: 1rem;
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .hero {
+    border-radius: 20px;
+  }
+  
+  .how-to-use {
+    border-radius: 20px;
+  }
+  
+  .hero-search {
+    flex-direction: column;
+    border-radius: 15px;
+  }
+  
+  .hero-search-input {
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+  }
+  
+  .hero-search-btn {
+    border-radius: 0 0 15px 15px;
+    padding: 0.75rem;
+  }
+  
+  .hero-clear-btn {
+    border-radius: 0;
+    order: -1;
+  }
+  
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .step {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 320px) {
+  .containerHome {
+    padding: 0.5rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 1.8rem;
+  }
+  
+  .hero-content h2 {
+    font-size: 1.1rem;
+  }
+  
+  .service-card {
+    padding: 1.5rem 0.5rem;
+    font-size: 0.8rem;
+  }
 }
