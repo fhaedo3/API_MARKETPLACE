@@ -121,7 +121,7 @@ const Login = () => {
 
             // Redirigir después de un breve delay
             setTimeout(() => {
-                navigate('/'); // Redirigir a la página principal
+                navigate('/dashboard');
             }, 1500);
 
             return data;

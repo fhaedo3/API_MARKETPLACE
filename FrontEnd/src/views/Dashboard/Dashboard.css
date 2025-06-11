@@ -25,3 +25,255 @@
   text-align: center;
   margin-bottom: 1.5rem;
 }
+
+/* Estados de carga y error */
+.dashboard-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--primary-green);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--primary-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.dashboard-error {
+  text-align: center;
+  padding: 2rem;
+  color: #ff6b6b;
+}
+
+.dashboard-error h2 {
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+}
+
+.dashboard-error p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.retry-button {
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.retry-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+/* Mensaje cuando no hay jugadores - Mejorado */
+.no-players {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--primary-green);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: 20px;
+  margin: 2rem 0;
+  border: 2px dashed rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+}
+
+.no-players:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.no-players-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+.no-players h2 {
+  color: var(--primary-green);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.no-players p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.no-players-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.marketplace-button,
+.refresh-button {
+  background: linear-gradient(135deg, var(--primary-green), #45a049);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  min-width: 160px;
+}
+
+.marketplace-button:hover,
+.refresh-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, #45a049, #388e3c);
+}
+
+.refresh-button {
+  background: linear-gradient(135deg, #607d8b, #455a64);
+  box-shadow: 0 4px 15px rgba(96, 125, 139, 0.3);
+}
+
+.refresh-button:hover {
+  background: linear-gradient(135deg, #455a64, #37474f);
+  box-shadow: 0 6px 20px rgba(96, 125, 139, 0.4);
+}
+
+/* Información del equipo */
+.team-info {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  color: var(--primary-green);
+}
+
+.team-info h3 {
+  color: var(--primary-green);
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.team-info p {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-info p strong {
+  color: var(--primary-green);
+  font-weight: bold;
+  margin-right: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .containerDashboard {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  
+  .dashboard-items {
+    justify-content: center;
+  }
+  
+  .dashboard-title {
+    font-size: 1.5rem;
+  }
+  
+  .team-info {
+    padding: 1rem;
+  }
+  
+  .team-info p {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .team-info p strong {
+    margin-right: 0;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* No players responsive */
+  .no-players {
+    padding: 2rem 1rem;
+  }
+  
+  .no-players h2 {
+    font-size: 1.5rem;
+  }
+  
+  .no-players-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .marketplace-button,
+  .refresh-button {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* Efectos adicionales */
+.containerDashboard {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.containerDashboard:hover {
+  transform: translateY(-2px);
+}
+
+/* Animación para cuando se cargan los jugadores */
+.dashboard-items {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
