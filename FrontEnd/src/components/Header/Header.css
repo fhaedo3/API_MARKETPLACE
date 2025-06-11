@@ -143,12 +143,12 @@
 }
 
 /* USER ACTIONS */
-.join-button {
+.logOut-button {
   margin-left: auto;
   padding-right: 25px;
 }
 
-.join-btn {
+.logOut-btn {
   background-color: #003F1F;
   color: white;
   border: none;
@@ -163,7 +163,7 @@
   transition: all 0.3s ease;
 }
 
-.join-btn:hover {
+.logOut-btn:hover {
   background-color: #002c16;
   transform: translateY(-2px);
 }

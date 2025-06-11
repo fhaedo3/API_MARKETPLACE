@@ -27,35 +27,25 @@ const Header = () => {
         <header className="header">
             <div className="header-content">
                 {/* LOGO */}
-                <Link to="/dashboard" className="logo">
+                <Link to="/" className="logo">
                     <img src="/images/Logo.png" alt="ScoutMarket Logo" className="logo-img" />
                 </Link>
 
-                {/* SEARCH BAR - Desktop */}
-                <div className="search-container desktop-search">
-                    <input
-                        type="text"
-                        placeholder="Search For Name Or Position"
-                        className="search-input"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                    />
-                    <button className="search-btn" onClick={handleSearch}>🔍</button>
-                </div>
+
 
                 {/* NAVIGATION - Desktop */}
                 <nav className="nav desktop-nav">
-                    <Link to="/players" className="nav-link">Explore</Link>
-                    <Link to="/dashboard" className="nav-link">My Team</Link>
-                    <Link to="/cart" className="nav-link">Cart</Link>
+                <a href="#hero" className="nav-link">Home</a>
+                <a href="#services" className="nav-link">Services</a>
+                <a href="#how-to-use" className="nav-link">How to Use</a>
+                <a href="#best-players" className="nav-link">Top Players</a>
                 </nav>
 
                 {/* USER ACTIONS - Desktop */}
-                <div className="join-button desktop-join">
+                <div className="logOut-button">
                     <Link to="/login">
                         <button className="logOut-btn">
-                            Log Out 👥
+                            Register / Login 👥
                         </button>
                     </Link>
                 </div>
@@ -89,18 +79,17 @@ const Header = () => {
 
                 {/* NAVIGATION - Mobile */}
                 <nav className="mobile-nav">
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Buy</Link>
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Sell</Link>
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Borrowing</Link>
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Trade</Link>
-                    <Link to="/dashboard" className="mobile-nav-link" onClick={toggleMenu}>My team</Link>
+                <a href="#hero" className="nav-link">Home</a>
+                <a href="#services" className="nav-link">Services</a>
+                <a href="#how-to-use" className="nav-link">How to Use</a>
+                <a href="#best-players" className="nav-link">Top Players</a>
                 </nav>
 
                 {/* USER ACTIONS - Mobile */}
-                <div className="mobile-join">
+                <div className="logOut-button">
                     <Link to="/join" onClick={toggleMenu}>
-                        <button className="join-btn mobile-join-btn">
-                            Join 👥
+                        <button className="logOut-btn">
+                            Register / Login 👥
                         </button>
                     </Link>
                 </div>

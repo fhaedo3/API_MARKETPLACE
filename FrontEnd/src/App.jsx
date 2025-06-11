@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Header from './components/Header/Header.jsx';
 import Footer from './components/Footer/Footer.jsx';
+import HeaderHome from './components/Header/HeaderHome.jsx';
 
 // VIEWS
 import Home from './views/Home/Home.jsx';
@@ -14,11 +15,19 @@ import Cart from './views/Cart/Cart.jsx';
 
 const AppContent = () => {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+const path = location.pathname;
+
+let headerComponent = null;
+if (path === '/') {
+  headerComponent = <HeaderHome />;
+} else if (!['/login'].includes(path)) {
+  headerComponent = <Header />;
+}
+  
 
   return (
     <div className="app">
-      {!isLoginPage && <Header />}
+      {headerComponent}
 
       <main className="main-content">
         <Routes>
@@ -31,7 +40,7 @@ const AppContent = () => {
         </Routes>
       </main>
 
-      {!isLoginPage && <Footer />}
+      {<Footer />}
     </div>
   );
 };

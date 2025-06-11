@@ -46,12 +46,16 @@ const Cart = () => {
           />
         ))}
       </div>
-      <div className="cart-footer">
-        <div className="cart-subtotal">
-          Subtotal: ${subtotal.toLocaleString()}
+        <div className="cart-footer">
+            <div className="cart-subtotal">
+              Subtotal: ${subtotal.toLocaleString()}
+            </div>
+          <div className="left-buttons">
+            <button className="btn-buy">Buy</button>
+            <button className="btn-delete">Delete 🗑️</button>
+          </div>
+
         </div>
-        <button className="btn-buy">Buy</button>
-      </div>
     </div>
   );
 };

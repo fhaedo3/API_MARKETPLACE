@@ -115,10 +115,10 @@ const Home = () => {
   };
 
   return (
-    <div className="home">
+    <div className="home" >
       <div className="containerHome">
         {/* HERO SECTION */}
-        <section className="hero">
+        <section className="hero"id="hero">
           <div className="hero-inner">
             <div className="hero-content">
               <h1>ScoutMarket</h1>
@@ -166,7 +166,7 @@ const Home = () => {
         </section>
 
         {/* SERVICES SECTION */}
-        <section className="services">
+        <section className="services" id="services">
           <div className="containerHome">
             <div className="services-header">
               <h3>Most Popular Services</h3>
@@ -182,7 +182,7 @@ const Home = () => {
         </section>
 
         {/* HOW TO USE */}
-        <section className="how-to-use">
+        <section className="how-to-use" id="how-to-use">
           <div className="how-to-use-inner">
             <h3>How To Use:</h3>
             <div className="how-to-use-box">
@@ -199,7 +199,7 @@ const Home = () => {
         </section>
 
         {/* BEST PLAYERS */}
-        <section className="best-players">
+        <section className="best-players" id="best-players">
           <div className="player-container">
             <section className="player-grid-section">
               <h2 className="section-title">

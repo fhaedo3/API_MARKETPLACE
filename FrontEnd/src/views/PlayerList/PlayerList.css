@@ -1,0 +1,27 @@
+.containerplayerList {
+  background-color: rgba(117, 116, 116, 0.6);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 2rem auto;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.playerList-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.playerList-title {
+  font-size: var(--font-size-xl);
+  color: var(--primary-green);
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
