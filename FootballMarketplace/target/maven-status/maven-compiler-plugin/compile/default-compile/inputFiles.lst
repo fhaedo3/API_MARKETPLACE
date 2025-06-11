@@ -2,7 +2,6 @@ C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\api\controller\CartItemController.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\FootballMarketplaceApplication.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\api\controller\config\JwtAuthenticationFilter.java
-C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\application\dto\response\DummyResponse.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\application\dto\request\CartItemRequest.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\api\controller\config\SwaggerConfig.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\api\controller\UserController.java
@@ -29,7 +28,6 @@ C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\domain\interfaces\IPlayerRepository.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\application\dto\response\ShoppingCartResponse.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\domain\model\Transaction.java
-C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\application\dto\request\DummyRequest.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\api\controller\TransactionController.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\domain\model\Auditable.java
 C:\Git\API_MARKETPLACE\FootballMarketplace\src\main\java\com\footballmarketplace\api\controller\OperationController.java

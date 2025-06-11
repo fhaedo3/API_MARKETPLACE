@@ -25,8 +25,8 @@ const Dashboard = () => {
     }
   };
 
-  // Función para obtener información del usuario por email
-  const getUserByEmail = async (email, token) => {
+  // Función para obtener información del usuario por username
+  const getUserByUsername = async (username, token) => {
     try {
       const response = await fetch('http://localhost:8080/users', {
         headers: {
@@ -34,18 +34,15 @@ const Dashboard = () => {
           'Content-Type': 'application/json',
         },
       });
-
       if (!response.ok) {
         throw new Error(`Error fetching users: ${response.status}`);
       }
-
       const users = await response.json();
-      const user = users.find(u => u.email === email);
-
+      const user = users.find(u => u.username && u.username.trim().toLowerCase() === username.trim().toLowerCase());
       if (!user) {
-        throw new Error('User not found');
+        console.error('User not found. Username buscado:', username, 'Usernames en base:', users.map(u => u.username));
+        throw new Error('User not found (username: ' + username + ')');
       }
-
       return user;
     } catch (error) {
       console.error('Error fetching user info:', error);
@@ -54,42 +51,33 @@ const Dashboard = () => {
   };
 
   // Función para obtener los jugadores del usuario
-  const fetchUserPlayers = async (userId, token) => {
+  const fetchUserPlayers = async (ownerId, token) => {
     try {
-      const response = await fetch(`http://localhost:8080/users/${userId}/players`, {
+      const response = await fetch(`http://localhost:8080/players/owner/${ownerId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
-
       if (!response.ok) {
-        // Si es un 404 o el usuario no tiene jugadores, retornar array vacío
         if (response.status === 404) {
           console.log('User has no players yet');
           return [];
         }
         throw new Error(`Error fetching players: ${response.status}`);
       }
-
       const players = await response.json();
-
-      // Manejar casos donde la respuesta podría ser null, undefined o no un array
       if (!players || !Array.isArray(players)) {
         console.log('No players found or invalid response format');
         return [];
       }
-
       return players;
     } catch (error) {
       console.error('Error fetching user players:', error);
-
-      // Si el error es relacionado con "no tiene jugadores asociados", retornar array vacío
       if (error.message && error.message.includes('no tiene jugadores')) {
         console.log('User has no associated players');
         return [];
       }
-
       throw error;
     }
   };
@@ -99,76 +87,48 @@ const Dashboard = () => {
       try {
         setLoading(true);
         setError(null);
-
-        // Obtener token del localStorage
         const token = localStorage.getItem('token');
-
         if (!token) {
           setError('No authentication token found.');
           return;
         }
-
-        // Decodificar token para obtener información del usuario
         const decodedToken = decodeToken(token);
-
-        if (!decodedToken || !decodedToken.sub) {
+        if (!decodedToken) {
           setError('Invalid authentication token.');
           return;
         }
-
-        // Verificar si el token ha expirado
-        const currentTime = Date.now() / 1000;
-        if (decodedToken.exp < currentTime) {
-          setError('Authentication token has expired.');
+        if (!decodedToken.sub) {
+          setError('Invalid authentication token: no username.');
           return;
         }
-
-        // Obtener información completa del usuario
-        const userInfo = await getUserByEmail(decodedToken.sub, token);
+        const userInfo = await getUserByUsername(decodedToken.sub, token);
         setUserInfo(userInfo);
-
-        // Obtener jugadores del usuario
         const players = await fetchUserPlayers(userInfo.id, token);
-
-        // Transformar datos si es necesario para que coincidan con el componente PlayerCard
         const transformedPlayers = players.map(player => ({
           id: player.id,
           name: player.name,
           price: player.price,
-          image: player.image || '/images/default-player.png', // imagen por defecto si no tiene
+          image: player.image || '/images/default-player.png',
           position: player.position,
           rating: player.rating,
           characteristics: player.characteristics || [],
           isForSale: player.isForSale || false,
         }));
-
         setPlayersDashboard(transformedPlayers);
-
-        // Log para debugging
-        console.log(`Loaded ${transformedPlayers.length} players for user ${userInfo.teamName}`);
-
+        console.log(`Loaded ${transformedPlayers.length} players for userId ${userInfo.id}`);
       } catch (error) {
         console.error('Error loading user players:', error);
-
-        // Manejar diferentes tipos de errores
-        if (error.message && (
-          error.message.includes('no tiene jugadores') ||
-          error.message.includes('No players found') ||
-          error.message.includes('404')
-        )) {
-          // Si es un error de "no tiene jugadores", no mostrar error, sino array vacío
-          setPlayersDashboard([]);
-          console.log('User has no players - showing empty state');
-        } else {
-          setError(error.message || 'Error loading your players. Please try again.');
-        }
+        setError(error.message || 'Error loading your players. Please try again.');
       } finally {
         setLoading(false);
       }
     };
-
     loadUserPlayers();
   }, [navigate]);
+
+  const totalValue = playersDashboard.reduce((sum, p) => sum + (p.price || 0), 0);
+  const playersForSale = playersDashboard.filter(p => p.isForSale).length;
+  const playersNotForSale = playersDashboard.length - playersForSale;
 
   if (loading) {
     return (
@@ -197,31 +157,29 @@ const Dashboard = () => {
 
   return (
     <div className="containerDashboard">
-      <h1 className="dashboard-title">
-        {userInfo ? `${userInfo.teamName}'s Squad` : 'My Team'}
-      </h1>
-
+      {userInfo && (
+        <>
+          <h1 className="club-title">{userInfo.teamName}</h1>
+          <div className="team-info" style={{ marginBottom: '2.5rem' }}>
+            <p><strong>Stadium:</strong> {userInfo.stadium}</p>
+            <p><strong>City:</strong> {userInfo.city}</p>
+            <p><strong>Founded:</strong> {userInfo.yearFounded}</p>
+            <p><strong>Total Players:</strong> {playersDashboard.length}</p>
+            <p><strong>Players For Sale:</strong> {playersForSale}</p>
+            <p><strong>Players Not For Sale:</strong> {playersNotForSale}</p>
+            <p><strong>Total Squad Value:</strong> ${totalValue.toLocaleString()}</p>
+          </div>
+        </>
+      )}
       {playersDashboard.length === 0 ? (
         <div className="no-players">
-          <div className="no-players-icon">
-            ⚽
-          </div>
+          <div className="no-players-icon">⚽</div>
           <h2>No Players Yet!</h2>
           <p>Your squad is empty. Time to build your dream team!</p>
           <p>Visit the marketplace to discover and purchase talented players.</p>
           <div className="no-players-actions">
-            <button
-              onClick={() => navigate('/marketplace')}
-              className="marketplace-button"
-            >
-              🏪 Browse Marketplace
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="refresh-button"
-            >
-              🔄 Refresh
-            </button>
+            <button onClick={() => navigate('/marketplace')} className="marketplace-button">🏪 Browse Marketplace</button>
+            <button onClick={() => window.location.reload()} className="refresh-button">🔄 Refresh</button>
           </div>
         </div>
       ) : (
@@ -229,6 +187,7 @@ const Dashboard = () => {
           {playersDashboard.map((player) => (
             <FifaPlayerCard
               key={player.id}
+              id={player.id}
               name={player.name}
               position={player.position}
               rating={player.rating}
@@ -239,16 +198,6 @@ const Dashboard = () => {
               compact={true}
             />
           ))}
-        </div>
-      )}
-
-      {userInfo && (
-        <div className="team-info">
-          <h3>Team Information</h3>
-          <p><strong>Stadium:</strong> {userInfo.stadium}</p>
-          <p><strong>City:</strong> {userInfo.city}</p>
-          <p><strong>Founded:</strong> {userInfo.yearFounded}</p>
-          <p><strong>Total Players:</strong> {playersDashboard.length}</p>
         </div>
       )}
     </div>

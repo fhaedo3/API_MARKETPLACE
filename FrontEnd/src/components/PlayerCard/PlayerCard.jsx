@@ -1,5 +1,6 @@
 // src/components/PlayerCard/PlayerCard.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './playerCard.css';
 
 const FifaPlayerCard = ({
@@ -10,16 +11,19 @@ const FifaPlayerCard = ({
   price,
   isForSale,
   image,
+  id,
   compact = false // OCULTA EL FOR SALE
 }) => {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate(`/player/${id}`);
+  };
   return (
-    <div className="fifa-card">
-      {!compact && (
-        <div className={`fifa-sale-badge ${isForSale ? 'for-sale' : 'not-for-sale'}`}>
-          {isForSale ? 'FOR SALE' : 'NOT FOR SALE'}
-        </div>
-      )}
-
+    <div className="fifa-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
+      {/* Mostrar el badge siempre */}
+      <div className={`fifa-sale-badge ${isForSale ? 'for-sale' : 'not-for-sale'}`}>
+        {isForSale ? 'FOR SALE' : 'NOT FOR SALE'}
+      </div>
       <div className="fifa-rating">{rating}</div>
       <img src={image} alt={name} className="fifa-player-image" />
 

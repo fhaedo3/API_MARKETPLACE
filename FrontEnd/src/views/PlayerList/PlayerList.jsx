@@ -180,6 +180,7 @@ const PlayerList = () => {
                   {filteredPlayers.map((player) => (
                     <PlayerCard
                       key={player.id}
+                      id={player.id}
                       name={player.name}
                       position={player.position}
                       rating={player.rating}

@@ -112,8 +112,10 @@ const Login = () => {
 
             console.log('Login successful:', data);
 
-            // Guardar token (el backend devuelve access_token)
-            if (data.access_token) {
+            // Guardar token (el backend devuelve accessToken)
+            if (data.accessToken) {
+                localStorage.setItem('token', data.accessToken);
+            } else if (data.access_token) {
                 localStorage.setItem('token', data.access_token);
             }
 
