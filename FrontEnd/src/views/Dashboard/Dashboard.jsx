@@ -178,7 +178,7 @@ const Dashboard = () => {
           <p>Your squad is empty. Time to build your dream team!</p>
           <p>Visit the marketplace to discover and purchase talented players.</p>
           <div className="no-players-actions">
-            <button onClick={() => navigate('/marketplace')} className="marketplace-button">🏪 Browse Marketplace</button>
+            <button onClick={() => navigate('/players')} className="marketplace-button">🏪 Browse Marketplace</button>
             <button onClick={() => window.location.reload()} className="refresh-button">🔄 Refresh</button>
           </div>
         </div>
