@@ -58,10 +58,69 @@
   border-radius: 20px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  min-width: 120px;
 }
 
-.buy-button:hover,
-.borrow-button:hover {
+.buy-button:hover:not(:disabled),
+.borrow-button:hover:not(:disabled) {
   background-color: #ffb300;
+  transform: translateY(-2px);
+}
+
+.buy-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.buy-button.added {
+  background-color: #4caf50 !important;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+.buy-button.in-cart {
+  background-color: #2196f3 !important;
+  color: white !important;
+  cursor: not-allowed;
+}
+
+.buy-button.in-cart:hover {
+  background-color: #2196f3 !important;
+  transform: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .player-detail {
+    padding: 20px;
+    margin: 20px 10px;
+  }
+  
+  .player-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .player-image {
+    width: 100px;
+  }
+  
+  .player-name {
+    font-size: 24px;
+  }
+  
+  .player-actions {
+    position: static;
+    margin-top: 20px;
+    justify-content: center;
+  }
+  
+  .buy-button,
+  .borrow-button {
+    min-width: 100px;
+    padding: 12px 20px;
+  }
 }
