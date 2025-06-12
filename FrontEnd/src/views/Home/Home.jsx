@@ -1,6 +1,7 @@
 import './Home.css';
 import PlayerCard from '../../components/PlayerCard/PlayerCard.jsx';
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 
 const Home = () => {
   const [players, setPlayers] = useState([]);
@@ -9,6 +10,8 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+
+  const navigate = useNavigate(); // Hook para navegación
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -114,11 +117,16 @@ const Home = () => {
     setFilteredPlayers(players);
   };
 
+  // Función para manejar click en jugador - redirige al login
+  const handlePlayerClick = () => {
+    navigate('/login'); // Redirigir a la página de login
+  };
+
   return (
     <div className="home" >
       <div className="containerHome">
         {/* HERO SECTION */}
-        <section className="hero"id="hero">
+        <section className="hero" id="hero">
           <div className="hero-inner">
             <div className="hero-content">
               <h1>ScoutMarket</h1>
@@ -206,6 +214,19 @@ const Home = () => {
                 {isSearching ? `Search Results (${filteredPlayers.length})` : 'Top Players'}
               </h2>
 
+              {/* Mensaje informativo para usuarios no logueados */}
+              <div className="login-required-info" style={{
+                textAlign: 'center',
+                padding: '1rem',
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffeaa7',
+                borderRadius: '8px',
+                margin: '1rem 0',
+                color: '#856404'
+              }}>
+                <p><strong>🔒 Register/Login required to view player details</strong></p>
+              </div>
+
               {isSearching && (
                 <div className="search-info">
                   <p>Searching for: "<strong>{searchTerm}</strong>"</p>
@@ -259,16 +280,17 @@ const Home = () => {
               {!loading && !error && filteredPlayers.length > 0 && (
                 <div className="player-card-grid">
                   {filteredPlayers.map((player) => (
-                    <PlayerCard
+                    <div
                       key={player.id}
-                      name={player.name}
-                      position={player.position}
-                      rating={player.rating}
-                      characteristics={player.characteristics}
-                      price={player.price}
-                      isForSale={player.isForSale}
-                      image={player.image}
-                    />
+                      onClick={handlePlayerClick}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <PlayerCard
+                        player={player}
+                        compact={false}
+                        hideSaleBadge={false}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
