@@ -189,6 +189,14 @@ const PlayerDetail = () => {
     }
   };
 
+  // Obtener el userId logueado
+  const getLoggedUserId = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const decoded = decodeToken(token);
+    return decoded && decoded.userId ? decoded.userId : null;
+  };
+
   useEffect(() => {
     const fetchPlayer = async () => {
       try {
@@ -241,6 +249,10 @@ const PlayerDetail = () => {
   if (error) return <div className="player-detail"><h2>Error: {error}</h2></div>;
   if (!player) return <div className="player-detail"><h2>Player not found</h2></div>;
 
+  // Lógica para saber si el jugador pertenece al usuario logueado
+  const loggedUserId = getLoggedUserId();
+  const isOwnPlayer = loggedUserId && (player.ownerId === loggedUserId || player.owner?.id === loggedUserId);
+
   return (
     <div className="player-detail">
       <div className="player-header">
@@ -265,7 +277,7 @@ const PlayerDetail = () => {
         </ul>
       </div>
       <div className="player-actions">
-        {player.isForSale && (
+        {player.isForSale && !isOwnPlayer && (
           <button
             className={`buy-button ${addedToCart ? 'added' : ''} ${isInCart ? 'in-cart' : ''}`}
             onClick={handleAddToCart}
@@ -282,7 +294,10 @@ const PlayerDetail = () => {
             }
           </button>
         )}
-        {!player.isForSale && (
+        {isOwnPlayer && (
+          <p style={{ color: '#ccc', fontStyle: 'italic' }}>You cannot buy your own player</p>
+        )}
+        {!player.isForSale && !isOwnPlayer && (
           <p style={{ color: '#ccc', fontStyle: 'italic' }}>This player is not available for purchase</p>
         )}
       </div>

@@ -111,8 +111,14 @@ const Dashboard = () => {
           image: player.image || '/images/default-player.png',
           position: player.position,
           rating: player.rating,
-          characteristics: player.characteristics || [],
-          isForSale: player.isForSale || false,
+          // Corrige characteristics para que siempre sea array
+          characteristics: Array.isArray(player.characteristics)
+            ? player.characteristics
+            : (typeof player.characteristics === 'string' && player.characteristics.length > 0
+                ? player.characteristics.split(',').map(c => c.trim())
+                : []),
+          isForSale: player.isForSale === true, // fuerza booleano
+          ownerId: player.ownerId || (player.owner && player.owner.id) || null
         }));
         setPlayersDashboard(transformedPlayers);
         console.log(`Loaded ${transformedPlayers.length} players for userId ${userInfo.id}`);
@@ -187,14 +193,7 @@ const Dashboard = () => {
           {playersDashboard.map((player) => (
             <FifaPlayerCard
               key={player.id}
-              id={player.id}
-              name={player.name}
-              position={player.position}
-              rating={player.rating}
-              price={player.price}
-              image={player.image}
-              characteristics={player.characteristics}
-              isForSale={player.isForSale}
+              player={player}
               compact={true}
             />
           ))}

@@ -401,15 +401,9 @@ const Cart = () => {
             {cartItems.map((player) => (
               <div key={`cart-item-${player.id}`} className="cart-item-wrapper">
                 <FifaPlayerCard
-                  id={player.id}
-                  name={player.name}
-                  position={player.position}
-                  rating={player.rating}
-                  price={player.price}
-                  image={player.image}
-                  characteristics={player.characteristics}
-                  isForSale={player.isForSale}
+                  player={player}
                   compact={true}
+                  hideSaleBadge={true}
                 />
                 <button
                   className="remove-item-btn"
