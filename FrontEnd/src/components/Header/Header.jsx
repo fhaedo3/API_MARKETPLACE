@@ -32,6 +32,7 @@ const Header = () => {
                 </Link>
 
                 {/* SEARCH BAR - Desktop */}
+                {/*
                 <div className="search-container desktop-search">
                     <input
                         type="text"
@@ -42,7 +43,7 @@ const Header = () => {
                         onKeyPress={handleKeyPress}
                     />
                     <button className="search-btn" onClick={handleSearch}>🔍</button>
-                </div>
+                </div>*/}
 
                 {/* NAVIGATION - Desktop */}
                 <nav className="nav desktop-nav">

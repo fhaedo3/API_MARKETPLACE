@@ -1,26 +1,26 @@
-// src/components/PlayerCard/PlayerCard.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './playerCard.css';
 
-const FifaPlayerCard = ({
-  name,
-  position,
-  rating,
-  characteristics,
-  price,
-  isForSale,
-  image,
-  id,
-  compact = false // OCULTA EL FOR SALE
-}) => {
+const FifaPlayerCard = ({ player, compact = false }) => {
+  const {
+    name,
+    position,
+    rating,
+    characteristics,
+    price,
+    isForSale,
+    image,
+    id
+  } = player || {};
+
   const navigate = useNavigate();
   const handleClick = () => {
     navigate(`/player/${id}`);
   };
+
   return (
     <div className="fifa-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
-      {/* Mostrar el badge siempre */}
       <div className={`fifa-sale-badge ${isForSale ? 'for-sale' : 'not-for-sale'}`}>
         {isForSale ? 'FOR SALE' : 'NOT FOR SALE'}
       </div>
@@ -32,9 +32,10 @@ const FifaPlayerCard = ({
 
       {!compact && (
         <ul className="fifa-characteristics">
-          {characteristics.map((charac, index) => (
-            <li key={index}>• {charac}</li>
-          ))}
+          {Array.isArray(characteristics) &&
+            characteristics.map((charac, index) => (
+              <li key={index}>• {charac}</li>
+            ))}
         </ul>
       )}
 
