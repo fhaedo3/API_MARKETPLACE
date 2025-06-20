@@ -8,9 +8,8 @@ const PlayerList = () => {
   const [filteredPlayers, setFilteredPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState('');
+  const [selectedSaleStatus, setSelectedSaleStatus] = useState('');
   const [availablePositions, setAvailablePositions] = useState([]);
 
   useEffect(() => {
@@ -57,13 +56,26 @@ const PlayerList = () => {
     fetchPlayers();
   }, []);
 
+  // Efecto para aplicar ambos filtros
   useEffect(() => {
-    if (selectedPosition === '') {
-      setFilteredPlayers(players);
-    } else {
-      setFilteredPlayers(players.filter(p => p.position === selectedPosition));
+    let filtered = players;
+
+    // Filtrar por posición
+    if (selectedPosition !== '') {
+      filtered = filtered.filter(p => p.position === selectedPosition);
     }
-  }, [selectedPosition, players]);
+
+    // Filtrar por estado de venta
+    if (selectedSaleStatus !== '') {
+      if (selectedSaleStatus === 'for-sale') {
+        filtered = filtered.filter(p => p.isForSale === true);
+      } else if (selectedSaleStatus === 'not-for-sale') {
+        filtered = filtered.filter(p => p.isForSale === false);
+      }
+    }
+
+    setFilteredPlayers(filtered);
+  }, [selectedPosition, selectedSaleStatus, players]);
 
   if (loading) return <p>Loading players...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -72,11 +84,29 @@ const PlayerList = () => {
     <div className="player-list-container">
       <h2>Available Players</h2>
 
-      <PositionFilter
-        positions={availablePositions}
-        selectedPosition={selectedPosition}
-        onChange={setSelectedPosition}
-      />
+      <div className="filters-container">
+        <PositionFilter
+          positions={availablePositions}
+          selectedPosition={selectedPosition}
+          onChange={setSelectedPosition}
+        />
+
+        <div className="sale-filter-container">
+          <label htmlFor="sale-filter" className="sale-filter-label">
+            Filter by State:
+          </label>
+          <select
+            id="sale-filter"
+            value={selectedSaleStatus}
+            onChange={(e) => setSelectedSaleStatus(e.target.value)}
+            className="sale-filter-select"
+          >
+            <option value="">All players</option>
+            <option value="for-sale">For sale</option>
+            <option value="not-for-sale">Not for sale</option>
+          </select>
+        </div>
+      </div>
 
       <div className="player-list">
         {filteredPlayers.map(player => (

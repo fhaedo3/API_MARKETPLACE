@@ -10,6 +10,7 @@ const PlayerDetail = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   // Función para verificar si el jugador ya está en el carrito
   const checkPlayerInCart = async (playerId, token) => {
@@ -175,10 +176,12 @@ const PlayerDetail = () => {
 
       setAddedToCart(true);
       setIsInCart(true);
+      setShowToast(true);
 
       // Restablecer el estado visual después de 3 segundos
       setTimeout(() => {
         setAddedToCart(false);
+        setShowToast(false);
       }, 3000);
 
     } catch (error) {
@@ -255,6 +258,13 @@ const PlayerDetail = () => {
 
   return (
     <div className="player-detail">
+      {/* Toast notification */}
+      {showToast && (
+        <div className="toast">
+          ¡Player added to cart!
+        </div>
+      )}
+
       <div className="player-header">
         <img src={player.image || '/images/default-player.png'} alt={player.name} className="player-image" />
         <h1 className="player-name">{player.name}</h1>

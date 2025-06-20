@@ -10,6 +10,20 @@ const Cart = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [cartId, setCartId] = useState(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Función para mostrar toast
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+
+    // Ocultar toast después de 3 segundos
+    setTimeout(() => {
+      setShowToast(false);
+      setToastMessage('');
+    }, 3000);
+  };
 
   // Función para decodificar el JWT
   const decodeToken = (token) => {
@@ -148,6 +162,10 @@ const Cart = () => {
       const token = localStorage.getItem('token');
       if (!token || !cartId) return;
 
+      // Obtener el nombre del jugador antes de eliminarlo
+      const playerToRemove = cartItems.find(item => item.id === playerId);
+      const playerName = playerToRemove ? playerToRemove.name : 'Player';
+
       const response = await fetch(`http://localhost:8080/cart-items/remove-from-cart?cartId=${cartId}&playerId=${playerId}`, {
         method: 'DELETE',
         headers: {
@@ -162,6 +180,10 @@ const Cart = () => {
 
       // Actualizar la lista local
       setCartItems(prev => prev.filter(item => item.id !== playerId));
+
+      // Mostrar toast de confirmación
+      showToastMessage(`¡${playerName} was removed from cart!`);
+
     } catch (error) {
       console.error('Error removing player from cart:', error);
       setError('Error removing player from cart');
@@ -251,17 +273,15 @@ const Cart = () => {
   // Función para vaciar el carrito
   const handleClearCart = async () => {
     if (cartItems.length === 0) {
-      alert('Your cart is already empty!');
-      return;
-    }
-
-    if (!window.confirm('Are you sure you want to clear your cart?')) {
+      showToastMessage('Your cart is already empty!');
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
       if (!token || !cartId) return;
+
+      const itemCount = cartItems.length;
 
       // Eliminar cada item del carrito usando Promise.all para mejor rendimiento
       const deletePromises = cartItems.map(player =>
@@ -283,11 +303,13 @@ const Cart = () => {
       }
 
       setCartItems([]);
+      showToastMessage(`¡Cart cleared! ${itemCount} player${itemCount !== 1 ? 's' : ''} removed.`);
     } catch (error) {
       console.error('Error clearing cart:', error);
       setError('Error clearing cart. Please try again.');
     }
   };
+
 
   // Función separada para cargar datos del carrito (reutilizable)
   const loadCartData = async () => {
@@ -389,6 +411,13 @@ const Cart = () => {
 
   return (
     <div className="containerCart">
+      {/* Toast notification */}
+      {showToast && (
+        <div className="negative-toast">
+          {toastMessage}
+        </div>
+      )}
+
       {cartItems.length === 0 ? (
         <div className="empty-cart">
           <div className="empty-cart-icon">🛒</div>

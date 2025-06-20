@@ -37,3 +37,49 @@
 .player-list-container {
   padding: 1rem;
 }
+
+/* Nuevos estilos para los filtros */
+.filters-container {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.sale-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sale-filter-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+.sale-filter-select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #333;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.sale-filter-select:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: var(--primary-green);
+}
+
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
