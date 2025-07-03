@@ -10,7 +10,6 @@ const PlayerDetail = () => {
   const [isInCart, setIsInCart] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  // Función para obtener el userId del token
   // Función para obtener el userId real consultando la API por username
   const getUserIdFromToken = async (token) => {
     try {
@@ -22,6 +21,7 @@ const PlayerDetail = () => {
       const decoded = JSON.parse(jsonPayload);
       const username = decoded.sub || decoded.username || decoded.name;
       if (!username) return null;
+
       // Llama a la API de users para obtener el id real
       const usersResp = await fetch('http://localhost:8080/users', {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -35,20 +35,59 @@ const PlayerDetail = () => {
     }
   };
 
+  // Función para obtener o crear carrito activo
+  const getOrCreateActiveCart = async (userId, token) => {
+    try {
+      // Primero intentar obtener el carrito activo
+      const activeCartResponse = await fetch(`http://localhost:8080/shopping-carts/user/${userId}/active`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (activeCartResponse.ok) {
+        return await activeCartResponse.json();
+      }
+
+      // Si no hay carrito activo (404), crear uno nuevo
+      if (activeCartResponse.status === 404) {
+        const createCartResponse = await fetch('http://localhost:8080/shopping-carts', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: userId,
+            status: 'ACTIVE'
+          }),
+        });
+
+        if (createCartResponse.ok) {
+          return await createCartResponse.json();
+        }
+      }
+
+      throw new Error('Could not get or create cart');
+    } catch (error) {
+      console.error('Error getting/creating cart:', error);
+      throw error;
+    }
+  };
+
   // Función para verificar si el jugador está en el carrito
   const checkPlayerInCart = async (playerId, token) => {
     try {
       const userId = await getUserIdFromToken(token);
       if (!userId) return false;
-      const cartResponse = await fetch(`http://localhost:8080/shopping-carts/user/${userId}/active`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (cartResponse.status === 404) return false;
-      const cart = await cartResponse.json();
+
+      const cart = await getOrCreateActiveCart(userId, token);
+      if (!cart) return false;
+
       const cartItemsResponse = await fetch(`http://localhost:8080/cart-items/cart/${cart.id}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+
       if (!cartItemsResponse.ok) return false;
+
       const cartItems = await cartItemsResponse.json();
       return cartItems.some(item => item.playerId === parseInt(playerId));
     } catch (error) {
@@ -64,12 +103,28 @@ const PlayerDetail = () => {
       setTimeout(() => setShowToast(false), 2500);
       return;
     }
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('Please log in to add items to cart');
         return;
       }
+
+      const userId = await getUserIdFromToken(token);
+      if (!userId) {
+        alert('Error getting user information');
+        return;
+      }
+
+      // Obtener o crear carrito activo
+      const cart = await getOrCreateActiveCart(userId, token);
+      if (!cart) {
+        alert('Error accessing cart');
+        return;
+      }
+
+      // Agregar item al carrito usando el ID real del carrito
       const response = await fetch('http://localhost:8080/cart-items/add-to-cart', {
         method: 'POST',
         headers: {
@@ -77,18 +132,25 @@ const PlayerDetail = () => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          cartId: 'active', // Simplificado, asumiendo que la API maneja el carrito activo
-          playerId: player.id,
-          quantity: 1,
+          cartId: cart.id.toString(), // Usar el ID real del carrito
+          playerId: player.id.toString(),
+          quantity: '1',
         }),
       });
-      if (!response.ok) throw new Error('Error adding to cart');
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Server error: ${response.status}`);
+      }
+
       setIsInCart(true);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
+
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Error adding player to cart');
+      alert('Error adding player to cart: ' + error.message);
     }
   };
 
@@ -97,22 +159,31 @@ const PlayerDetail = () => {
       try {
         setLoading(true);
         setError(null);
+
         const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:8080/players/${id}`, {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         });
+
         if (!response.ok) throw new Error('Error fetching player');
+
         const data = await response.json();
+
+        // Procesar características
         data.characteristics = data.characteristics
           ? Array.isArray(data.characteristics)
             ? data.characteristics
             : data.characteristics.split(',').map(c => c.trim())
           : [];
+
         setPlayer(data);
+
+        // Verificar si está en el carrito solo si el usuario está logueado
         if (token) {
           const inCart = await checkPlayerInCart(id, token);
           setIsInCart(inCart);
         }
+
       } catch (err) {
         console.error('Error fetching player:', err);
         setError(err.message);
@@ -120,6 +191,7 @@ const PlayerDetail = () => {
         setLoading(false);
       }
     };
+
     fetchPlayer();
   }, [id]);
 
@@ -169,7 +241,7 @@ const PlayerDetail = () => {
             }
           </ul>
         </div>
-        <div className="player-actions">
+        <div className="player-actions-detail">
           {player.isForSale ? (
             <button
               className="buy-button"

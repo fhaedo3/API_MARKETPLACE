@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
-import './ManageMyPlayers.css'; // Asegúrate de que el nombre coincida
+import './ManageMyPlayers.css';
 
 const ManageMyPlayers = () => {
     const [players, setPlayers] = useState([]);
@@ -9,7 +9,10 @@ const ManageMyPlayers = () => {
     const [error, setError] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
-    const [editingPlayer, setEditingPlayer] = useState(null);
+
+    // Separar estados para diferentes tipos de edición
+    const [editingPlayerData, setEditingPlayerData] = useState(null); // Para editar datos completos
+    const [editingPlayerPrice, setEditingPlayerPrice] = useState(null); // Para editar solo precio
     const [newPrice, setNewPrice] = useState('');
     const [playerToSell, setPlayerToSell] = useState(null);
     const navigate = useNavigate();
@@ -94,9 +97,10 @@ const ManageMyPlayers = () => {
                 const userInfo = await getUserByUsername(decodedToken.sub, token);
                 setUserInfo(userInfo);
 
-                const players = await fetchUserPlayers(userInfo.id, token);
-                // Mostrar TODOS los jugadores (incluyendo los que están en venta)
-                setPlayers(players);
+                const allPlayers = await fetchUserPlayers(userInfo.id, token);
+                // Filtrar para mostrar solo jugadores que NO están en venta (están en el club)
+                const playersInClub = allPlayers.filter(player => !player.isForSale);
+                setPlayers(playersInClub);
             } catch (error) {
                 console.error('Error loading data:', error);
                 setError(error.message);
@@ -108,11 +112,12 @@ const ManageMyPlayers = () => {
         loadData();
     }, []);
 
-    // Cambiar estado de venta (mantener jugador en el club)
+    // Cambiar estado de venta
     const togglePlayerSale = async (playerId, currentSaleStatus) => {
         try {
             const token = localStorage.getItem('token');
             const newSaleStatus = !currentSaleStatus;
+
             const response = await fetch(`http://localhost:8080/players/${playerId}/forsale/${newSaleStatus}`, {
                 method: 'PUT',
                 headers: {
@@ -126,15 +131,18 @@ const ManageMyPlayers = () => {
             }
 
             const updatedPlayer = await response.json();
-            
-            // Actualizar el jugador en la lista local
-            setPlayers(prev => prev.map(p => p.id === playerId ? updatedPlayer : p));
-            setPlayerToSell(null);
 
-            const message = newSaleStatus ? 
-                'Player is now available for sale in the marketplace!' : 
-                'Player has been removed from sale!';
-            alert(message);
+            if (newSaleStatus) {
+                // Si se pone en venta, remover del club (lista local)
+                setPlayers(prev => prev.filter(p => p.id !== playerId));
+                alert('Player is now for sale and has been moved to the marketplace!');
+            } else {
+                // Si se quita de venta, agregar al club (lista local)
+                setPlayers(prev => [...prev, updatedPlayer]);
+                alert('Player has been removed from sale and is back in your club!');
+            }
+
+            setPlayerToSell(null);
         } catch (error) {
             console.error('Error updating sale status:', error);
             alert('Error updating sale status. Please try again.');
@@ -165,8 +173,9 @@ const ManageMyPlayers = () => {
 
             const updatedPlayer = await response.json();
             setPlayers(prev => prev.map(p => p.id === playerId ? updatedPlayer : p));
-            setEditingPlayer(null);
+            setEditingPlayerPrice(null);
             setNewPrice('');
+            alert('Price updated successfully!');
         } catch (error) {
             console.error('Error updating price:', error);
             alert('Error updating price. Please try again.');
@@ -192,7 +201,7 @@ const ManageMyPlayers = () => {
 
             const updatedPlayer = await response.json();
             setPlayers(prev => prev.map(p => p.id === playerId ? updatedPlayer : p));
-            setEditingPlayer(null);
+            setEditingPlayerData(null);
             alert('Player updated successfully!');
         } catch (error) {
             console.error('Error updating player:', error);
@@ -244,7 +253,8 @@ const ManageMyPlayers = () => {
 
             {players.length === 0 ? (
                 <div className="no-players">
-                    <h2>No Players Yet</h2>
+                    <h2>No Players in Club</h2>
+                    <p>All your players might be for sale, or you haven't added any players yet.</p>
                     <p>Start building your team by adding your first player!</p>
                     <button
                         className="add-first-player-btn"
@@ -264,8 +274,8 @@ const ManageMyPlayers = () => {
                                     className="player-image"
                                     onError={(e) => handleImageError(e, player.id)}
                                 />
-                                <div className={`sale-status ${player.isForSale ? 'for-sale' : 'not-for-sale'}`}>
-                                    {player.isForSale ? 'FOR SALE' : 'IN SQUAD'}
+                                <div className="sale-status not-for-sale">
+                                    IN SQUAD
                                 </div>
                             </div>
 
@@ -275,7 +285,7 @@ const ManageMyPlayers = () => {
                                 <p className="player-rating">Rating: {player.rating}</p>
 
                                 <div className="price-section">
-                                    {editingPlayer === player.id ? (
+                                    {editingPlayerPrice === player.id ? (
                                         <div className="price-edit">
                                             <input
                                                 type="number"
@@ -295,7 +305,7 @@ const ManageMyPlayers = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => {
-                                                        setEditingPlayer(null);
+                                                        setEditingPlayerPrice(null);
                                                         setNewPrice('');
                                                     }}
                                                     className="cancel-btn"
@@ -309,7 +319,7 @@ const ManageMyPlayers = () => {
                                             <span className="price">${player.price?.toLocaleString() || '0'}</span>
                                             <button
                                                 onClick={() => {
-                                                    setEditingPlayer(player.id);
+                                                    setEditingPlayerPrice(player.id);
                                                     setNewPrice(player.price?.toString() || '');
                                                 }}
                                                 className="edit-price-btn"
@@ -323,25 +333,21 @@ const ManageMyPlayers = () => {
 
                             <div className="player-actions">
                                 <button
-                                    onClick={() => setEditingPlayer(player)}
+                                    onClick={() => setEditingPlayerData(player)}
                                     className="action-btn edit-player-btn"
                                     title="Edit player details"
                                 >
                                     <span className="btn-icon">✏️</span>
                                     <span className="btn-text">Edit</span>
                                 </button>
-                                
+
                                 <button
                                     onClick={() => setPlayerToSell(player)}
-                                    className={`action-btn toggle-sale-btn ${player.isForSale ? 'remove-from-sale' : 'put-for-sale'}`}
-                                    title={player.isForSale ? "Remove from marketplace" : "Put on marketplace"}
+                                    className="action-btn toggle-sale-btn put-for-sale"
+                                    title="Put on marketplace"
                                 >
-                                    <span className="btn-icon">
-                                        {player.isForSale ? '�' : '💰'}
-                                    </span>
-                                    <span className="btn-text">
-                                        {player.isForSale ? 'Remove Sale' : 'Put for Sale'}
-                                    </span>
+                                    <span className="btn-icon">💰</span>
+                                    <span className="btn-text">Put for Sale</span>
                                 </button>
                             </div>
                         </div>
@@ -349,28 +355,18 @@ const ManageMyPlayers = () => {
                 </div>
             )}
 
-            {/* Modal de confirmación para cambiar estado de venta */}
+            {/* Modal de confirmación para poner en venta */}
             {playerToSell && (
                 <div className="modal-overlay" onClick={() => setPlayerToSell(null)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="sale-warning">
-                            <div className="sale-warning-icon">
-                                {playerToSell.isForSale ? '🔄' : '💰'}
-                            </div>
-                            <h2>
-                                {playerToSell.isForSale ? 'Remove from Sale' : 'Put for Sale'}
-                            </h2>
+                            <div className="sale-warning-icon">💰</div>
+                            <h2>Put Player for Sale</h2>
                             <p>
-                                {playerToSell.isForSale ? 
-                                    `Are you sure you want to remove ${playerToSell.name} from sale?` :
-                                    `Are you sure you want to put ${playerToSell.name} for sale?`
-                                }
+                                Are you sure you want to put <strong>{playerToSell.name}</strong> for sale?
                             </p>
                             <p>
-                                {playerToSell.isForSale ? 
-                                    'The player will no longer be available in the marketplace but will remain in your club.' :
-                                    'The player will be available in the marketplace but will remain in your club.'
-                                }
+                                The player will be moved to the marketplace and will no longer appear in your club until removed from sale.
                             </p>
                             <p>Current price: <strong>${playerToSell.price?.toLocaleString() || '0'}</strong></p>
                         </div>
@@ -379,7 +375,7 @@ const ManageMyPlayers = () => {
                                 onClick={() => togglePlayerSale(playerToSell.id, playerToSell.isForSale)}
                                 className="confirm-sale-btn"
                             >
-                                {playerToSell.isForSale ? 'Yes, Remove from Sale' : 'Yes, Put for Sale'}
+                                Yes, Put for Sale
                             </button>
                             <button
                                 onClick={() => setPlayerToSell(null)}
@@ -398,17 +394,25 @@ const ManageMyPlayers = () => {
                     userInfo={userInfo}
                     onClose={() => setShowAddForm(false)}
                     onPlayerAdded={(newPlayer) => {
-                        setPlayers(prev => [...prev, newPlayer]);
+                        // Solo agregar a la lista si NO está marcado para venta
+                        if (!newPlayer.isForSale) {
+                            setPlayers(prev => [...prev, newPlayer]);
+                        }
                         setShowAddForm(false);
+
+                        const message = newPlayer.isForSale
+                            ? 'Player created and put for sale in the marketplace!'
+                            : 'Player created and added to your club!';
+                        alert(message);
                     }}
                 />
             )}
 
             {/* Modal para editar jugador */}
-            {editingPlayer && (
+            {editingPlayerData && (
                 <EditPlayerModal
-                    player={editingPlayer}
-                    onClose={() => setEditingPlayer(null)}
+                    player={editingPlayerData}
+                    onClose={() => setEditingPlayerData(null)}
                     onPlayerUpdated={updatePlayer}
                 />
             )}
@@ -487,15 +491,7 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
             }
 
             const newPlayer = await response.json();
-
-            // Solo agregar a la lista local si NO está marcado para venta
-            if (!newPlayer.isForSale) {
-                onPlayerAdded(newPlayer);
-            } else {
-                // Si se marcó para venta, cerrar el modal y mostrar mensaje
-                onClose();
-                alert('Player created and immediately put for sale in the marketplace!');
-            }
+            onPlayerAdded(newPlayer);
         } catch (error) {
             console.error('Error creating player:', error);
             alert('Error creating player. Please try again.');
@@ -559,8 +555,6 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                         </div>
                     </div>
 
-
-
                     <div className="form-group">
                         <label>Characteristics:</label>
                         <textarea
@@ -590,7 +584,7 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                                 checked={formData.isForSale}
                                 onChange={(e) => setFormData({ ...formData, isForSale: e.target.checked })}
                             />
-                            Put for sale immediately (player will be available in marketplace)
+                            Put for sale immediately (player will be moved to marketplace)
                         </label>
                     </div>
 
@@ -659,6 +653,13 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
             // Validaciones básicas
             if (formData.rating < 1 || formData.rating > 100) {
                 alert('Rating must be between 1 and 100');
+                setLoading(false);
+                return;
+            }
+
+            if (formData.price <= 0) {
+                alert('Price must be greater than 0');
+                setLoading(false);
                 return;
             }
 

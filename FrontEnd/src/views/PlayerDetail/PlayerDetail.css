@@ -57,6 +57,7 @@
 }
 
 .player-name {
+  color: white;
   font-size: 24px;
   font-weight: bold;
   margin: 0;
@@ -78,14 +79,15 @@
   margin-left: 20px;
 }
 
-.player-actions {
+.player-actions-detail {
+  display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px 0 0 0;
   min-height: 60px;
   background: none;
   margin-top: 32px;
-  position: static; /* This is correct for placing it in the normal flow */
+  position: static;
 }
 
 .buy-button {
