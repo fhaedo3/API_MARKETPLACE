@@ -1,5 +1,6 @@
 package com.footballmarketplace.application.service;
 
+import com.footballmarketplace.application.dto.response.PlayerResponse;
 import com.footballmarketplace.domain.interfaces.IPlayerRepository;
 import com.footballmarketplace.domain.model.Player;
 import com.footballmarketplace.domain.model.User;
@@ -61,5 +62,37 @@ public class PlayerService {
 
     public List<Player> getPlayersForSale() {
         return playerRepository.findByIsForSaleTrue();
+    }
+
+    // Mapper de Player a PlayerResponse
+    public PlayerResponse toPlayerResponse(Player player) {
+        PlayerResponse resp = new PlayerResponse();
+        resp.setId(player.getId());
+        resp.setName(player.getName());
+        resp.setLastName(player.getLastName());
+        resp.setPosition(player.getPosition());
+        resp.setRating(player.getRating());
+        resp.setCharacteristics(player.getCharacteristics());
+        resp.setPrice(player.getPrice());
+        resp.setIsForSale(player.getIsForSale());
+        resp.setImage(player.getImage());
+        if (player.getOwner() != null) {
+            resp.setOwnerId(player.getOwner().getId());
+            resp.setOwnerName(player.getOwner().getUsername());
+            resp.setClubName(player.getOwner().getTeamName());
+        }
+        return resp;
+    }
+
+    public List<PlayerResponse> getAllPlayersResponse() {
+        return getAllPlayers().stream().map(this::toPlayerResponse).toList();
+    }
+
+    public List<PlayerResponse> getPlayersByOwnerIdResponse(Long ownerId) {
+        return getPlayersByOwnerId(ownerId).stream().map(this::toPlayerResponse).toList();
+    }
+
+    public PlayerResponse getPlayerResponseById(Long id) {
+        return getPlayerById(id).map(this::toPlayerResponse).orElse(null);
     }
 }

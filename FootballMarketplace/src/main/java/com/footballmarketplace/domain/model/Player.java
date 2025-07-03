@@ -16,10 +16,31 @@ public class Player extends Auditable {
     private String name;
 
     @Column
+    private String lastName;
+
+    @Column
     private String position;
 
     @Column
     private Integer rating;
+
+    @Column
+    private Integer pace;
+
+    @Column
+    private Integer shooting;
+
+    @Column
+    private Integer passing;
+
+    @Column
+    private Integer dribbling;
+
+    @Column
+    private Integer defending;
+
+    @Column
+    private Integer physical;
 
     @Column(length = 1000)
     private String characteristics;

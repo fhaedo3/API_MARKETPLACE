@@ -2,6 +2,7 @@ import './Home.css';
 import PlayerCard from '../../components/PlayerCard/PlayerCard.jsx';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { getPlayerImageUrl } from '../../utils/imageUtils';
 
 const Home = () => {
   const [players, setPlayers] = useState([]);
@@ -40,7 +41,7 @@ const Home = () => {
             ) : [],
           price: player.price || 0,
           isForSale: player.isForSale || false,
-          image: player.image || '/images/default-player.png'
+          image: getPlayerImageUrl(player)
         }));
 
         console.log('Jugadores mapeados:', mappedPlayers); // Para debug

@@ -1,9 +1,11 @@
 // src/views/Cart/Cart.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Cart.css';
 import FifaPlayerCard from '../../components/PlayerCard/PlayerCard';
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -191,7 +193,8 @@ const Cart = () => {
   };
 
   // Función para realizar la compra
-  const handlePurchase = async () => {
+  // Función para navegar al checkout
+  const handlePurchase = () => {
     if (cartItems.length === 0) {
       alert('Your cart is empty!');
       return;
@@ -204,70 +207,14 @@ const Cart = () => {
       return;
     }
 
-    // Confirmar compra
-    const totalAmount = cartItems.reduce((acc, player) => acc + (player.price || 0), 0);
-    if (!window.confirm(`Are you sure you want to buy ${cartItems.length} player(s) for $${totalAmount.toLocaleString()}?`)) {
-      return;
-    }
-
-    try {
-      setPurchasing(true);
-      const token = localStorage.getItem('token');
-      if (!token || !cartId) return;
-
-      // Crear transacciones para cada jugador
-      const transactionPromises = cartItems.map(async (player) => {
-        const response = await fetch(`http://localhost:8080/transactions/create-transfer`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            buyerId: userInfo.id,
-            sellerId: player.owner?.id || 1, // Si no tiene owner, asumimos ID 1
-            playerId: player.id,
-            total: player.price
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error creating transaction for player ${player.name}: ${response.status}`);
-        }
-
-        return response.json();
-      });
-
-      // Esperar a que todas las transacciones se completen
-      await Promise.all(transactionPromises);
-
-      // Realizar checkout del carrito
-      const checkoutResponse = await fetch(`http://localhost:8080/shopping-carts/${cartId}/checkout`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!checkoutResponse.ok) {
-        throw new Error(`Error during checkout: ${checkoutResponse.status}`);
+    // Navegar al checkout con los datos del carrito
+    navigate('/checkout', {
+      state: {
+        cartItems: cartItems,
+        userInfo: userInfo,
+        cartId: cartId
       }
-
-      alert(`Purchase completed successfully! You bought ${cartItems.length} player(s) for $${totalAmount.toLocaleString()}`);
-
-      // Limpiar el carrito local
-      setCartItems([]);
-
-      // Opcional: Recargar el carrito desde el servidor para asegurar sincronización
-      await loadCartData();
-
-    } catch (error) {
-      console.error('Error during purchase:', error);
-      alert(`Error completing purchase: ${error.message}. Please try again.`);
-    } finally {
-      setPurchasing(false);
-    }
+    });
   };
 
   // Función para vaciar el carrito
@@ -456,7 +403,7 @@ const Cart = () => {
                 onClick={handlePurchase}
                 disabled={purchasing || cartItems.length === 0}
               >
-                {purchasing ? 'Processing...' : `Buy (${cartItems.length} player${cartItems.length !== 1 ? 's' : ''})`}
+                {purchasing ? 'Processing...' : 'Proceed to Checkout'}
               </button>
               <button
                 className="btn-delete"

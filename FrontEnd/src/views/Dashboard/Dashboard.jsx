@@ -1,14 +1,17 @@
 import FifaPlayerCard from '../../components/PlayerCard/PlayerCard';
 import './Dashboard.css';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getPlayerImageUrl } from '../../utils/imageUtils';
 
 const Dashboard = () => {
   const [playersDashboard, setPlayersDashboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Función para decodificar el JWT y obtener información del usuario
   const decodeToken = (token) => {
@@ -108,7 +111,7 @@ const Dashboard = () => {
           id: player.id,
           name: player.name,
           price: player.price,
-          image: player.image || '/images/default-player.png',
+          image: getPlayerImageUrl(player),
           position: player.position,
           rating: player.rating,
           // Corrige characteristics para que siempre sea array
@@ -131,6 +134,20 @@ const Dashboard = () => {
     };
     loadUserPlayers();
   }, [navigate]);
+
+  // Manejar mensajes de éxito del checkout
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage);
+      // Limpiar el mensaje después de 5 segundos
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      
+      // Limpiar el state para evitar que persista en navegación
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const totalValue = playersDashboard.reduce((sum, p) => sum + (p.price || 0), 0);
   const playersForSale = playersDashboard.filter(p => p.isForSale).length;
@@ -166,6 +183,23 @@ const Dashboard = () => {
       {userInfo && (
         <>
           <h1 className="club-title">{userInfo.teamName}</h1>
+          
+          {/* Mensaje de éxito */}
+          {successMessage && (
+            <div className="success-message">
+              <div className="success-content">
+                <span className="success-icon">🎉</span>
+                <p>{successMessage}</p>
+                <button 
+                  onClick={() => setSuccessMessage(null)} 
+                  className="close-success"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="team-info" style={{ marginBottom: '2.5rem' }}>
             <p><strong>Stadium:</strong> {userInfo.stadium}</p>
             <p><strong>City:</strong> {userInfo.city}</p>
@@ -174,6 +208,11 @@ const Dashboard = () => {
             <p><strong>Players For Sale:</strong> {playersForSale}</p>
             <p><strong>Players Not For Sale:</strong> {playersNotForSale}</p>
             <p><strong>Total Squad Value:</strong> ${totalValue.toLocaleString()}</p>
+            <div className="dashboard-actions">
+              <button onClick={() => navigate('/manage-my-players')} className="manage-players-btn">
+                ⚙️ Manage My Players
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -185,6 +224,7 @@ const Dashboard = () => {
           <p>Visit the marketplace to discover and purchase talented players.</p>
           <div className="no-players-actions">
             <button onClick={() => navigate('/players')} className="marketplace-button">🏪 Browse Marketplace</button>
+            <button onClick={() => navigate('/manage-my-players')} className="manage-button">⚙️ Manage Players</button>
             <button onClick={() => window.location.reload()} className="refresh-button">🔄 Refresh</button>
           </div>
         </div>

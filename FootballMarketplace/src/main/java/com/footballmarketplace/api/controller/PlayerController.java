@@ -1,10 +1,12 @@
 package com.footballmarketplace.api.controller;
 
 import com.footballmarketplace.application.dto.request.PlayerRequest;
+import com.footballmarketplace.application.dto.request.PlayerUpdateRequest;
 import com.footballmarketplace.application.service.PlayerService;
 import com.footballmarketplace.application.service.UserService;
 import com.footballmarketplace.domain.model.Player;
 import com.footballmarketplace.domain.model.User;
+import com.footballmarketplace.application.dto.response.PlayerResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,21 +43,24 @@ public class PlayerController {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<List<Player>> listPublicPlayers() {
-        List<Player> players = playerService.getAllPlayers();
+    public ResponseEntity<List<PlayerResponse>> listPublicPlayers() {
+        List<PlayerResponse> players = playerService.getAllPlayersResponse();
         return ResponseEntity.ok(players);
     }
 
     @GetMapping("/{playerId}")
-    public ResponseEntity<Player> getPlayerById(@PathVariable Long playerId) {
-        return playerService.getPlayerById(playerId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PlayerResponse> getPlayerById(@PathVariable Long playerId) {
+        PlayerResponse player = playerService.getPlayerResponseById(playerId);
+        if (player != null) {
+            return ResponseEntity.ok(player);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<Player>> getPlayersByOwnerId(@PathVariable Long ownerId) {
-        List<Player> players = playerService.getPlayersByOwnerId(ownerId);
+    public ResponseEntity<List<PlayerResponse>> getPlayersByOwnerId(@PathVariable Long ownerId) {
+        List<PlayerResponse> players = playerService.getPlayersByOwnerIdResponse(ownerId);
         return ResponseEntity.ok(players);
     }
 
@@ -139,6 +144,80 @@ public class PlayerController {
             return ResponseEntity.ok(updatedPlayer);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{playerId}/price/{newPrice}")
+    public ResponseEntity<Player> updatePlayerPrice(@PathVariable Long playerId, @PathVariable Double newPrice) {
+        try {
+            if (newPrice <= 0) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            Optional<Player> playerOpt = playerService.getPlayerById(playerId);
+            if (playerOpt.isPresent()) {
+                Player player = playerOpt.get();
+                player.setPrice(newPrice);
+                Player updatedPlayer = playerService.addPlayer(player);
+                return ResponseEntity.ok(updatedPlayer);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/{playerId}")
+    public ResponseEntity<Player> updatePlayer(@PathVariable Long playerId, @RequestBody PlayerUpdateRequest updateRequest) {
+        try {
+            Optional<Player> playerOpt = playerService.getPlayerById(playerId);
+            if (playerOpt.isPresent()) {
+                Player player = playerOpt.get();
+                
+                // Actualizar solo los campos que vienen en el request
+                if (updateRequest.getName() != null) {
+                    player.setName(updateRequest.getName());
+                }
+                if (updateRequest.getLastName() != null) {
+                    player.setLastName(updateRequest.getLastName());
+                }
+                if (updateRequest.getPosition() != null) {
+                    player.setPosition(updateRequest.getPosition());
+                }
+                if (updateRequest.getRating() != null) {
+                    player.setRating(updateRequest.getRating());
+                }
+                if (updateRequest.getPace() != null) {
+                    player.setPace(updateRequest.getPace());
+                }
+                if (updateRequest.getShooting() != null) {
+                    player.setShooting(updateRequest.getShooting());
+                }
+                if (updateRequest.getPassing() != null) {
+                    player.setPassing(updateRequest.getPassing());
+                }
+                if (updateRequest.getDribbling() != null) {
+                    player.setDribbling(updateRequest.getDribbling());
+                }
+                if (updateRequest.getDefending() != null) {
+                    player.setDefending(updateRequest.getDefending());
+                }
+                if (updateRequest.getPhysical() != null) {
+                    player.setPhysical(updateRequest.getPhysical());
+                }
+                if (updateRequest.getCharacteristics() != null) {
+                    player.setCharacteristics(updateRequest.getCharacteristics());
+                }
+                if (updateRequest.getPrice() != null) {
+                    player.setPrice(updateRequest.getPrice());
+                }
+                
+                Player updatedPlayer = playerService.addPlayer(player);
+                return ResponseEntity.ok(updatedPlayer);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{playerId}")

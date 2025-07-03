@@ -1,0 +1,882 @@
+.manage-players-container {
+  background-color: rgba(117, 116, 116, 0.6);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  min-height: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.manage-players-container:hover {
+  transform: translateY(-2px);
+}
+
+/* Header */
+.manage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.manage-header h1 {
+  color: var(--primary-green);
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-player-btn,
+.back-btn {
+  background: linear-gradient(135deg, var(--primary-green), #45a049);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.add-player-btn:hover,
+.back-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, #45a049, #388e3c);
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #607d8b, #455a64);
+  box-shadow: 0 4px 15px rgba(96, 125, 139, 0.3);
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #455a64, #37474f);
+  box-shadow: 0 6px 20px rgba(96, 125, 139, 0.4);
+}
+
+/* Loading and Error States */
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+  color: var(--primary-green);
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+.error h2 {
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.back-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+/* No Players State */
+.no-players {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--primary-green);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: 20px;
+  margin: 2rem 0;
+  border: 2px dashed rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+}
+
+.no-players:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.no-players h2 {
+  color: var(--primary-green);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.no-players p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.add-first-player-btn {
+  background: linear-gradient(135deg, var(--primary-green), #45a049);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  margin-top: 1rem;
+}
+
+.add-first-player-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, #45a049, #388e3c);
+}
+
+/* Players Grid */
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Player Card */
+.player-card-manage {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  min-height: 280px; /* Asegurar altura mínima */
+}
+
+.player-card-manage:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.player-card-manage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-green), #45a049);
+  border-radius: 16px 16px 0 0;
+}
+
+/* Player Image */
+.player-image-container {
+  position: relative;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.player-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.player-image:hover {
+  transform: scale(1.1);
+  border-color: var(--primary-green);
+}
+
+/* Player Info - Mejorar spacing y visibilidad */
+.player-info {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-right: 2rem; /* Espacio para los botones */
+}
+
+.player-name {
+  color: var(--primary-green);
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.player-position,
+.player-rating {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.player-rating {
+  font-weight: bold;
+  color: var(--primary-green);
+}
+
+/* Sale Status Badge - Mejorar posicionamiento */
+.sale-status {
+  position: absolute;
+  top: -5px;
+  left: -10px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
+.sale-status.for-sale {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+}
+
+.sale-status.not-for-sale {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+}
+
+/* Price Section */
+.price-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.price-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.price {
+  color: var(--primary-green);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.edit-price-btn {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+  width: 100%;
+  text-align: center;
+}
+
+.edit-price-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+}
+
+/* Price Edit */
+.price-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.price-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.price-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.price-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-btn,
+.cancel-btn {
+  flex: 1;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.cancel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+/* Player Actions */
+/* Player Actions - Rediseñados para ser más sutiles */
+.player-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.player-card-manage:hover .player-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-width: 32px;
+  min-height: 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.btn-icon {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text {
+  display: none; /* Ocultar texto por defecto */
+  font-weight: 600;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+/* Mostrar texto solo en pantallas más grandes */
+@media (min-width: 768px) {
+  .action-btn {
+    min-width: auto;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .btn-text {
+    display: block;
+  }
+  
+  .btn-icon {
+    margin-right: 0.25rem;
+  }
+}
+
+/* Edit Player Button */
+.edit-player-btn {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  border-color: rgba(33, 150, 243, 0.3);
+}
+
+.edit-player-btn:hover {
+  background: linear-gradient(135deg, #1976D2, #1565C0);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+/* Toggle Sale Buttons */
+.toggle-sale-btn.put-for-sale {
+  background: linear-gradient(135deg, #4CAF50, #45A049);
+  color: white;
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.toggle-sale-btn.put-for-sale:hover {
+  background: linear-gradient(135deg, #45A049, #388E3C);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.toggle-sale-btn.remove-from-sale {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+  color: white;
+  border-color: rgba(255, 152, 0, 0.3);
+}
+
+.toggle-sale-btn.remove-from-sale:hover {
+  background: linear-gradient(135deg, #F57C00, #E65100);
+  border-color: rgba(255, 152, 0, 0.5);
+}
+
+/* Disabled states */
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.action-btn:disabled:hover {
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Loading states */
+.action-btn.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.action-btn.loading .btn-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, rgba(117, 116, 116, 0.9), rgba(117, 116, 116, 0.95));
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-content h2 {
+  color: var(--primary-green);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+/* Form Styles */
+.add-player-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-player-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stats-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stats-section h3 {
+  color: var(--primary-green);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.stats-grid .form-group {
+  margin-bottom: 0;
+}
+
+.stats-grid .form-group label {
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.stats-grid .form-group input {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-group label {
+  color: var(--primary-green);
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-group select option {
+  background: #333;
+  color: white;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  transform: scale(1.2);
+  accent-color: var(--primary-green);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, var(--primary-green), #45a049);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  flex: 1;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, #45a049, #388e3c);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-actions .cancel-btn {
+  background: linear-gradient(135deg, #607d8b, #455a64);
+  box-shadow: 0 4px 15px rgba(96, 125, 139, 0.3);
+  flex: 1;
+}
+
+.form-actions .cancel-btn:hover {
+  background: linear-gradient(135deg, #455a64, #37474f);
+  box-shadow: 0 6px 20px rgba(96, 125, 139, 0.4);
+}
+
+/* Sale Warning */
+.sale-warning {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
+  border: 2px solid rgba(255, 152, 0, 0.5);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.sale-warning-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sale-warning p {
+  color: #ff9800;
+  font-weight: bold;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.confirm-sale-btn {
+  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+  color: white !important;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.confirm-sale-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+  background: linear-gradient(135deg, #f57c00, #ef6c00) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .manage-players-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+
+  .manage-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manage-header h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
+  .players-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .player-card-manage {
+    padding: 1rem;
+  }
+
+  .price-display {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .price-actions {
+    flex-direction: column;
+  }
+
+  .player-actions {
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-text {
+    font-size: 0.75rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .edit-modal {
+    max-width: 95%;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .manage-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+  }
+
+  .add-player-btn,
+  .back-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .player-card-manage {
+    padding: 0.75rem;
+  }
+
+  .action-btn {
+    padding: 0.5rem;
+    min-height: 40px;
+  }
+
+  .btn-icon {
+    font-size: 1rem;
+  }
+
+  .btn-text {
+    font-size: 0.7rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    width: 95%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

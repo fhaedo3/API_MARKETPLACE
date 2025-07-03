@@ -12,6 +12,9 @@ import Dashboard from './views/Dashboard/Dashboard.jsx';
 import PlayerList from './views/PlayerList/PlayerList.jsx';
 import PlayerDetail from './views/PlayerDetail/PlayerDetail.jsx';
 import Cart from './views/Cart/Cart.jsx';
+import Checkout from './views/Checkout/Checkout.jsx';
+import ManageMyPlayers from './views/ManageMyPlayers/ManageMyPlayers.jsx';
+import ClubDashboard from './views/ClubDashboard/ClubDashboard.jsx';
 
 const AppContent = () => {
   const location = useLocation();
@@ -37,6 +40,9 @@ if (path === '/') {
           <Route path="/players" element={<PlayerList />} />
           <Route path="/player/:id" element={<PlayerDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/manage-my-players" element={<ManageMyPlayers />} />
+          <Route path="/club/:clubId" element={<ClubDashboard />} />
         </Routes>
       </main>
 
