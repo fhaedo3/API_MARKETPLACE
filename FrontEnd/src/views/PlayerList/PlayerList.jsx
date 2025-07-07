@@ -1,17 +1,25 @@
 import './PlayerList.css';
 import FifaPlayerCard from '../../components/PlayerCard/PlayerCard.jsx';
 import PositionFilter from '../../components/PositionFilter/PositionFilter.jsx';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { getPlayerImageUrl } from '../../utils/imageUtils';
+import {useDispatch, useSelector} from 'react-redux'; // mepermite dentro del componente despachar acciones a mi store de redux
+import { fetchPlayers } from '../../components/Redux/PlayerSlice'; // importa la accion que creamos en el slice de redux para obtener los jugadores
 
 const PlayerList = () => {
+    const dispatch = useDispatch(); 
+    const {items: players, loading, error} = useSelector((state) => state.Players); // me permite acceder a los datos del store de redux
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedPosition, setSelectedPosition] = useState('');
+    const [selectedSaleStatus, setSelectedSaleStatus] = useState('');
+    const [availablePositions, setAvailablePositions] = useState([]);
+    const [filteredPlayers, setFilteredPlayers] = useState([]);
+    /*
     const [players, setPlayers] = useState([]);
     const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedPosition, setSelectedPosition] = useState('');
-    const [selectedSaleStatus, setSelectedSaleStatus] = useState('');
-    const [availablePositions, setAvailablePositions] = useState([]);
+    
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -62,8 +70,17 @@ const PlayerList = () => {
         };
 
         fetchPlayers();
-    }, []);
+    }, []);*/
 
+    
+    
+    useEffect(() => { // ejecuta y despacha la accion que creamos en el slice por ej fethPlayers cuando el componente se monta por primera vez
+        dispatch(fetchPlayers()); // despacha la accion que creamos en el slice
+    }, [dispatch]); // (array de dependencias) me asegura que el useEffect se ejecute una sola vez cuando el componente se monta por primera vez
+
+    
+    
+    
     // Efecto para aplicar filtros y búsqueda
     useEffect(() => {
         let filtered = players;
@@ -93,9 +110,10 @@ const PlayerList = () => {
         setFilteredPlayers(filtered);
     }, [searchTerm, selectedPosition, selectedSaleStatus, players]);
 
-    if (loading) return <p>Loading players...</p>;
-    if (error) return <p>Error: {error}</p>;
-
+    
+    if(loading) return <p>Cargando jugadores...</p> // si loading es true, muestra un mensaje de carga
+    if(error) return <p>Error al cargar los jugadores: {error}</p> // si hay un error, muestra el mensaje de error
+    
     return (
         <div className="player-list-container">
             <h2>Available Players</h2>
