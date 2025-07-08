@@ -2,96 +2,44 @@ import './PlayerList.css';
 import FifaPlayerCard from '../../components/PlayerCard/PlayerCard.jsx';
 import PositionFilter from '../../components/PositionFilter/PositionFilter.jsx';
 import { useState, useEffect } from 'react';
-import { getPlayerImageUrl } from '../../utils/imageUtils';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAllPlayers, setSearchTerm, setPositionFilter, setSaleStatusFilter } from '../../store/slices/playerSlice';
+import { selectFilteredPlayers, selectPlayersLoading, selectPlayersError, selectAvailablePositions } from '../../store/slices/playerSlice';
 
 const PlayerList = () => {
-    const [players, setPlayers] = useState([]);
-    const [filteredPlayers, setFilteredPlayers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const dispatch = useDispatch();
+    
+    // Redux state
+    const players = useSelector(selectFilteredPlayers);
+    const loading = useSelector(selectPlayersLoading);
+    const error = useSelector(selectPlayersError);
+    const availablePositions = useSelector(selectAvailablePositions);
+    
+    // Local state para filtros
     const [selectedPosition, setSelectedPosition] = useState('');
     const [selectedSaleStatus, setSelectedSaleStatus] = useState('');
-    const [availablePositions, setAvailablePositions] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTermLocal, setSearchTermLocal] = useState('');
 
     useEffect(() => {
-        const fetchPlayers = async () => {
-            try {
-                setLoading(true);
-                const URL = 'http://localhost:8080/players/public';
-                const response = await fetch(URL);
+        dispatch(fetchAllPlayers());
+    }, [dispatch]);
 
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
+    // Manejar cambios en filtros
+    const handleSearchChange = (e) => {
+        const term = e.target.value;
+        setSearchTermLocal(term);
+        dispatch(setSearchTerm(term));
+    };
 
-                const data = await response.json();
-                console.log('Datos recibidos del backend:', data);
+    const handlePositionChange = (position) => {
+        setSelectedPosition(position);
+        dispatch(setPositionFilter(position));
+    };
 
-                const mappedPlayers = data.map(player => ({
-                    id: player.id ?? '',
-                    name: player.name ?? '',
-                    lastName: player.lastName ?? '',
-                    position: player.position ?? '',
-                    rating: player.rating ?? 0,
-                    characteristics: player.characteristics
-                        ? Array.isArray(player.characteristics)
-                            ? player.characteristics
-                            : player.characteristics.split(',').map(c => c.trim())
-                        : [],
-                    price: player.price ?? 0,
-                    isForSale: player.isForSale ?? false,
-                    image: getPlayerImageUrl(player),
-                    owner: {
-                        id: player.ownerId,
-                        clubName: player.clubName,
-                        username: player.ownerName
-                    }
-                }));
-
-                setPlayers(mappedPlayers);
-                setFilteredPlayers(mappedPlayers);
-
-                const uniquePositions = [...new Set(mappedPlayers.map(p => p.position))];
-                setAvailablePositions(uniquePositions);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPlayers();
-    }, []);
-
-    // Efecto para aplicar filtros y búsqueda
-    useEffect(() => {
-        let filtered = players;
-
-        // Filtro por nombre
-        if (searchTerm.trim() !== '') {
-            const term = searchTerm.trim().toLowerCase();
-            filtered = filtered.filter(p =>
-                (p.name + ' ' + (p.lastName || '')).toLowerCase().includes(term)
-            );
-        }
-
-        // Filtrar por posición
-        if (selectedPosition !== '') {
-            filtered = filtered.filter(p => p.position === selectedPosition);
-        }
-
-        // Filtrar por estado de venta
-        if (selectedSaleStatus !== '') {
-            if (selectedSaleStatus === 'for-sale') {
-                filtered = filtered.filter(p => p.isForSale === true);
-            } else if (selectedSaleStatus === 'not-for-sale') {
-                filtered = filtered.filter(p => p.isForSale === false);
-            }
-        }
-
-        setFilteredPlayers(filtered);
-    }, [searchTerm, selectedPosition, selectedSaleStatus, players]);
+    const handleSaleStatusChange = (status) => {
+        setSelectedSaleStatus(status);
+        dispatch(setSaleStatusFilter(status === 'for-sale'));
+    };
 
     if (loading) return <p>Loading players...</p>;
     if (error) return <p>Error: {error}</p>;
@@ -104,8 +52,8 @@ const PlayerList = () => {
                 <input
                     type="text"
                     placeholder="Search by name..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    value={searchTermLocal}
+                    onChange={handleSearchChange}
                     className="player-search-input"
                     style={{ padding: '0.5rem 1rem', borderRadius: 8, border: '1px solid #ccc', width: 240, fontSize: 16 }}
                 />
@@ -115,7 +63,7 @@ const PlayerList = () => {
                 <PositionFilter
                     positions={availablePositions}
                     selectedPosition={selectedPosition}
-                    onChange={setSelectedPosition}
+                    onChange={handlePositionChange}
                 />
 
                 <div className="sale-filter-container">
@@ -125,7 +73,7 @@ const PlayerList = () => {
                     <select
                         id="sale-filter"
                         value={selectedSaleStatus}
-                        onChange={(e) => setSelectedSaleStatus(e.target.value)}
+                        onChange={(e) => handleSaleStatusChange(e.target.value)}
                         className="sale-filter-select"
                     >
                         <option value="">All players</option>
@@ -136,7 +84,7 @@ const PlayerList = () => {
             </div>
 
             <div className="player-list">
-                {filteredPlayers.map(player => (
+                {players.map(player => (
                     <FifaPlayerCard key={player.id} player={player} />
                 ))}
             </div>

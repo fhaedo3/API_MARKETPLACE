@@ -1,63 +1,43 @@
 import './Home.css';
 import PlayerCard from '../../components/PlayerCard/PlayerCard.jsx';
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAllPlayers } from '../../store/slices/playerSlice';
+import { selectAllPlayers, selectPlayersLoading, selectPlayersError } from '../../store/slices/playerSlice';
 import { getPlayerImageUrl } from '../../utils/imageUtils';
 
 const Home = () => {
-  const [players, setPlayers] = useState([]);
-  const [filteredPlayers, setFilteredPlayers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  // Redux state
+  const players = useSelector(selectAllPlayers);
+  const loading = useSelector(selectPlayersLoading);
+  const error = useSelector(selectPlayersError);
+  
+  // Local state para búsqueda
   const [searchTerm, setSearchTerm] = useState('');
+  const [filteredPlayers, setFilteredPlayers] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const navigate = useNavigate(); // Hook para navegación
-
+  // Cargar jugadores al montar el componente
   useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        setLoading(true);
-        const URL = 'http://localhost:8080/players/public';
-        const response = await fetch(URL);
+    dispatch(fetchAllPlayers());
+  }, [dispatch]);
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Datos recibidos del backend:', data); // Para debug
-
-        // Mapear los datos del backend al formato que espera PlayerCard
-        const mappedPlayers = data.map(player => ({
-          id: player.id,
-          name: player.name || '',
-          position: player.position || '',
-          rating: player.rating || 0,
-          characteristics: player.characteristics ?
-            (Array.isArray(player.characteristics) ?
-              player.characteristics :
-              player.characteristics.split(',').map(c => c.trim())
-            ) : [],
-          price: player.price || 0,
-          isForSale: player.isForSale || false,
-          image: getPlayerImageUrl(player)
-        }));
-
-        console.log('Jugadores mapeados:', mappedPlayers); // Para debug
-        setPlayers(mappedPlayers);
-        setFilteredPlayers(mappedPlayers);
-        setError(null);
-      } catch (error) {
-        console.error("Error al cargar los jugadores:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlayers();
-  }, []);
+  // Filtrar jugadores cuando cambie el término de búsqueda o los jugadores
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredPlayers(players.slice(0, 12)); // Mostrar solo los primeros 12 en home
+    } else {
+      const filtered = players.filter(player =>
+        player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        player.position.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredPlayers(filtered.slice(0, 12));
+    }
+  }, [players, searchTerm]);
 
   // Función para realizar la búsqueda
   const performSearch = useCallback((searchValue) => {

@@ -1,13 +1,17 @@
 import './Login.css';
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, registerUser, clearAuthError } from '../../store/slices/authSlice';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    
+    // Redux state
+    const { loading, error, isAuthenticated } = useSelector(state => state.auth);
+    const [success, setSuccess] = useState(null);
 
     const [formData, setFormData] = useState({
         username: '',
@@ -26,13 +30,13 @@ const Login = () => {
             [e.target.name]: e.target.value
         });
         // Limpiar mensajes de error cuando el usuario empiece a escribir
-        if (error) setError(null);
+        if (error) dispatch(clearAuthError());
         if (success) setSuccess(null);
     };
 
     const handleTabChange = (loginMode) => {
         setIsLogin(loginMode);
-        setError(null);
+        dispatch(clearError());
         setSuccess(null);
         // Limpiar datos del formulario al cambiar de tab
         setFormData({
@@ -94,88 +98,6 @@ const Login = () => {
         return true;
     };
 
-    const handleLogin = async (loginData) => {
-        try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/authenticate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(loginData),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `Error: ${response.status}`);
-            }
-
-            console.log('Login successful:', data);
-
-            // Guardar token (el backend devuelve accessToken)
-            if (data.accessToken) {
-                localStorage.setItem('token', data.accessToken);
-            } else if (data.access_token) {
-                localStorage.setItem('token', data.access_token);
-            }
-
-            setSuccess('Login successful! Redirecting...');
-
-            // Redirigir después de un breve delay
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1500);
-
-            return data;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
-    };
-
-    const handleRegister = async (registerData) => {
-        try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(registerData),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `Error: ${response.status}`);
-            }
-
-            console.log('Registration successful:', data);
-
-            setSuccess('Registration successful! You can now log in.');
-
-            // Cambiar automáticamente a la pestaña de login después del registro exitoso
-            setTimeout(() => {
-                setIsLogin(true);
-                setFormData({
-                    username: '',
-                    password: '',
-                    email: formData.email, // Mantener el email
-                    teamName: '',
-                    yearFounded: '',
-                    stadium: '',
-                    city: '',
-                    role: 'USER'
-                });
-                setSuccess(null);
-            }, 2000);
-
-            return data;
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -183,17 +105,21 @@ const Login = () => {
             return;
         }
 
-        setLoading(true);
-        setError(null);
-        setSuccess(null);
-
         try {
             if (isLogin) {
                 const loginData = {
                     email: formData.email.trim(),
                     password: formData.password
                 };
-                await handleLogin(loginData);
+                
+                const result = await dispatch(loginUser(loginData)).unwrap();
+                
+                if (result) {
+                    setSuccess('Login successful! Redirecting...');
+                    setTimeout(() => {
+                        navigate('/dashboard');
+                    }, 1500);
+                }
             } else {
                 const registerData = {
                     username: formData.username.trim(),
@@ -205,12 +131,31 @@ const Login = () => {
                     city: formData.city.trim(),
                     role: formData.role
                 };
-                await handleRegister(registerData);
+                
+                const result = await dispatch(registerUser(registerData)).unwrap();
+                
+                if (result) {
+                    setSuccess('Registration successful! You can now log in.');
+                    // Cambiar automáticamente a la pestaña de login después del registro exitoso
+                    setTimeout(() => {
+                        setIsLogin(true);
+                        setFormData({
+                            username: '',
+                            password: '',
+                            email: formData.email, // Mantener el email
+                            teamName: '',
+                            yearFounded: '',
+                            stadium: '',
+                            city: '',
+                            role: 'USER'
+                        });
+                        setSuccess(null);
+                    }, 2000);
+                }
             }
         } catch (error) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
+            // El error ya está manejado por Redux
+            console.error('Authentication error:', error);
         }
     };
 

@@ -1,12 +1,19 @@
 // IMPORTS
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { selectIsAuthenticated, selectUsername } from '../../store/slices/authSlice';
 import './Header.css';
 
 // COMPONENTE HEADER
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+    const username = useSelector(selectUsername);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -21,6 +28,11 @@ const Header = () => {
         if (e.key === 'Enter') {
             handleSearch();
         }
+    };
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/');
     };
 
     return (
@@ -54,11 +66,17 @@ const Header = () => {
 
                 {/* USER ACTIONS - Desktop */}
                 <div className="join-button desktop-join">
-                    <Link to="/login">
-                        <button className="logOut-btn">
+                    {isAuthenticated ? (
+                        <button className="logOut-btn" onClick={handleLogout}>
                             Log Out 👥
                         </button>
-                    </Link>
+                    ) : (
+                        <Link to="/login">
+                            <button className="logOut-btn">
+                                Log In 👥
+                            </button>
+                        </Link>
+                    )}
                 </div>
 
                 {/* HAMBURGER MENU BUTTON - Mobile */}

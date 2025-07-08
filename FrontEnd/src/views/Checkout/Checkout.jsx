@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCartItems, clearCart } from '../../store/slices/cartSlice';
+import { fetchUserBalance, updateUserBalance } from '../../store/slices/userSlice';
+import { selectCartItems, selectCartTotal, selectCartLoading } from '../../store/slices/cartSlice';
+import { selectUserBalance, selectBalanceLoading } from '../../store/slices/userSlice';
+import { selectUserId, selectUsername } from '../../store/slices/authSlice';
 import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [cartItems, setCartItems] = useState([]);
-  const [userInfo, setUserInfo] = useState(null);
+  const dispatch = useDispatch();
+  
+  // Redux state
+  const cartItems = useSelector(selectCartItems);
+  const cartTotal = useSelector(selectCartTotal);
+  const cartLoading = useSelector(selectCartLoading);
+  const userBalance = useSelector(selectUserBalance);
+  const balanceLoading = useSelector(selectBalanceLoading);
+  const userId = useSelector(selectUserId);
+  const username = useSelector(selectUsername);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -22,34 +37,19 @@ const Checkout = () => {
     zipCode: ''
   });
 
-  // Datos recibidos del carrito
+  // Cargar datos del carrito y balance al montar el componente
   useEffect(() => {
-    if (location.state?.cartItems && location.state?.userInfo) {
-      setCartItems(location.state.cartItems);
-      setUserInfo(location.state.userInfo);
+    if (userId) {
+      dispatch(fetchCartItems());
+      dispatch(fetchUserBalance(userId));
     } else {
-      // Si no hay datos, redirigir al carrito
-      navigate('/cart');
+      // Si no hay usuario autenticado, redirigir al login
+      navigate('/login');
     }
-  }, [location.state, navigate]);
+  }, [dispatch, userId, navigate]);
 
-  // Función para decodificar el JWT
-  const decodeToken = (token) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  };
-
-  // Calcular totales
-  const subtotal = cartItems.reduce((acc, player) => acc + (player.price || 0), 0);
+  // Calcular totales usando Redux
+  const subtotal = cartTotal;
   const tax = subtotal * 0.1; // 10% de impuestos
   const total = subtotal + tax;
 
@@ -153,20 +153,23 @@ const Checkout = () => {
       return;
     }
 
+    // Verificar si el usuario tiene suficiente balance
+    if (userBalance < cartTotal) {
+      setError(`Insufficient balance. You need $${cartTotal.toLocaleString()} but only have $${userBalance.toLocaleString()}.`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
       // Simular procesamiento de pago (aquí iría la integración con un procesador de pagos real)
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Crear transacciones para cada jugador
-      const transactionPromises = cartItems.map(async (player) => {
+      // Crear transacciones para cada jugador usando la API
+      const token = localStorage.getItem('token');
+      const transactionPromises = cartItems.map(async (item) => {
+        const player = item.player || item;
         const response = await fetch(`http://localhost:8080/transactions/create-transfer`, {
           method: 'POST',
           headers: {
@@ -175,7 +178,7 @@ const Checkout = () => {
           },
           body: new URLSearchParams({
             sellerId: player.ownerId || player.owner?.id,
-            buyerId: userInfo.id,
+            buyerId: userId,
             playerId: player.id,
             total: player.price
           }),
@@ -191,29 +194,17 @@ const Checkout = () => {
 
       await Promise.all(transactionPromises);
 
-      // Limpiar carrito después de la compra exitosa
-      const cartResponse = await fetch(`http://localhost:8080/shopping-carts/user/${userInfo.id}/active`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      // Actualizar el balance del usuario
+      const newBalance = userBalance - cartTotal;
+      await dispatch(updateUserBalance({ userId, amount: newBalance })).unwrap();
 
-      if (cartResponse.ok) {
-        const cart = await cartResponse.json();
-        
-        // Eliminar todos los items del carrito
-        const clearPromises = cartItems.map(player => 
-          fetch(`http://localhost:8080/cart-items/remove-from-cart?cartId=${cart.id}&playerId=${player.id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
-        );
-
-        await Promise.all(clearPromises);
-      }
+      // Limpiar carrito
+      await dispatch(clearCart(userId)).unwrap();
 
       // Redirigir a una página de confirmación o dashboard
       navigate('/dashboard', { 
         state: { 
-          successMessage: `Purchase completed! You have successfully acquired ${cartItems.length} player(s) for $${total.toLocaleString()}.` 
+          successMessage: `Purchase completed! You have successfully acquired ${cartItems.length} player(s) for $${cartTotal.toLocaleString()}.` 
         }
       });
 
