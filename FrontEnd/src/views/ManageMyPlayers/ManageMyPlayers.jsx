@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
 import './ManageMyPlayers.css';
+import { useDispatch } from 'react-redux';
+import { createPlayer } from '../../components/Redux/PlayerSlice';
 
 const ManageMyPlayers = () => {
     const [players, setPlayers] = useState([]);
@@ -9,6 +11,8 @@ const ManageMyPlayers = () => {
     const [error, setError] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
+
+    const dispacth = useDispatch();
 
     // Separar estados para diferentes tipos de edición
     const [editingPlayerData, setEditingPlayerData] = useState(null); // Para editar datos completos
@@ -452,7 +456,20 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        dispacth(createPlayer({
+            formData, userInfo
+        }))
+        setFormData({
+            name: '',
+            lastName: '',
+            position: '',
+            rating: '',
+            characteristics: '',
+            price: '',
+            isForSale: false,
+            image: null
+        });
+        //setLoading(true);
 
         try {
             const token = localStorage.getItem('token');
