@@ -96,7 +96,6 @@ const ClubDashboard = () => {
   // Imagen del club
   const clubImage = `/images/Club/${club.teamName?.replace(/\s/g, '_')}/logo.png`;
   const fallbackImage = '/images/Logo.png';
-  console.log('Player:', player);
   console.log('Club:', club);
   return (
     
