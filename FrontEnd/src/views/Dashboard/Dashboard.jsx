@@ -234,6 +234,7 @@ const Dashboard = () => {
             <FifaPlayerCard
               key={player.id}
               player={player}
+              clubName={userInfo?.teamName || userInfo?.clubName || userInfo?.username || 'Unknown Club'}
               compact={true}
             />
           ))}
