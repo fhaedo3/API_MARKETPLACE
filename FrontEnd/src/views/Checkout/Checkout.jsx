@@ -5,7 +5,7 @@ import { fetchCartItems, clearCart } from '../../store/slices/cartSlice';
 import { fetchUserBalance, updateUserBalance } from '../../store/slices/userSlice';
 import { selectCartItems, selectCartTotal, selectCartLoading } from '../../store/slices/cartSlice';
 import { selectUserBalance, selectBalanceLoading } from '../../store/slices/userSlice';
-import { selectUserId, selectUsername } from '../../store/slices/authSlice';
+import { selectUserId, selectUsername, selectIsAuthenticated, selectToken } from '../../store/slices/authSlice';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -21,6 +21,8 @@ const Checkout = () => {
   const balanceLoading = useSelector(selectBalanceLoading);
   const userId = useSelector(selectUserId);
   const username = useSelector(selectUsername);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const token = useSelector(selectToken);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -39,14 +41,44 @@ const Checkout = () => {
 
   // Cargar datos del carrito y balance al montar el componente
   useEffect(() => {
-    if (userId) {
-      dispatch(fetchCartItems());
-      dispatch(fetchUserBalance(userId));
-    } else {
-      // Si no hay usuario autenticado, redirigir al login
+    // Verificar autenticación primero
+    if (!isAuthenticated || !token) {
+      console.log('Usuario no autenticado, redirigiendo al login');
       navigate('/login');
+      return;
     }
-  }, [dispatch, userId, navigate]);
+
+    // Si está autenticado, cargar datos
+    if (isAuthenticated && token) {
+      // Solo fetch cart items si el carrito está vacío
+      if (cartItems.length === 0) {
+        dispatch(fetchCartItems());
+      }
+      
+      if (userId) {
+        dispatch(fetchUserBalance(userId));
+      }
+    }
+  }, [dispatch, isAuthenticated, token, userId, navigate]);
+
+  // Verificar si el carrito está vacío y redirigir
+  useEffect(() => {
+    if (!cartLoading && cartItems.length === 0 && isAuthenticated) {
+      console.log('Carrito vacío, redirigiendo a /cart');
+      navigate('/cart');
+    }
+  }, [cartItems, cartLoading, isAuthenticated, navigate]);
+
+  // Debug info
+  useEffect(() => {
+    console.log('Checkout State:', {
+      isAuthenticated,
+      token: !!token,
+      userId,
+      cartItems: cartItems.length,
+      cartLoading
+    });
+  }, [isAuthenticated, token, userId, cartItems, cartLoading]);
 
   // Calcular totales usando Redux
   const subtotal = cartTotal;
@@ -80,18 +112,17 @@ const Checkout = () => {
 
   // Formatear fecha de expiración
   const formatExpiryDate = (value) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{2,4}/g);
-    const match = matches && matches[0] || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 2) {
-      parts.push(match.substring(i, i + 2));
+    // Solo permitir números
+    const v = value.replace(/[^0-9]/g, '');
+    
+    // Formatear como MM/YY
+    if (v.length >= 2) {
+      const month = v.substring(0, 2);
+      const year = v.substring(2, 4);
+      return year ? `${month}/${year}` : month;
     }
-    if (parts.length > 1) {
-      return parts.slice(0, 2).join('/');
-    } else {
-      return parts[0] || '';
-    }
+    
+    return v;
   };
 
   // Manejar cambios especiales para tarjeta
@@ -124,6 +155,13 @@ const Checkout = () => {
     
     if (!expiryDate || expiryDate.length < 5) {
       setError('Please enter a valid expiry date (MM/YY)');
+      return false;
+    }
+
+    // Validar que el mes esté entre 01-12
+    const [month, year] = expiryDate.split('/');
+    if (parseInt(month) < 1 || parseInt(month) > 12) {
+      setError('Please enter a valid month (01-12)');
       return false;
     }
     

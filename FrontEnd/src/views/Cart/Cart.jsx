@@ -94,6 +94,13 @@ const Cart = () => {
 
   // Handle purchase navigation
   const handlePurchase = () => {
+    console.log('handlePurchase called');
+    console.log('Cart state:', { 
+      cartItems: cartItems.length, 
+      isAuthenticated, 
+      token: !!token 
+    });
+
     if (cartItems.length === 0) {
       alert('Your cart is empty!');
       return;
@@ -106,6 +113,7 @@ const Cart = () => {
       return;
     }
 
+    console.log('Navigating to checkout...');
     // Navigate to checkout - Redux state will be available there
     navigate('/checkout');
   };

@@ -93,13 +93,17 @@ export const fetchCartItems = createAsyncThunk(
       }
       
       if (!token) {
+        console.log('No token found in fetchCartItems');
         return rejectWithValue('No authentication token found.');
       }
 
       const decodedToken = decodeToken(token);
       if (!decodedToken || !decodedToken.sub) {
+        console.log('Invalid token in fetchCartItems');
         return rejectWithValue('Invalid authentication token.');
       }
+
+      console.log('Fetching cart items for user:', decodedToken.sub);
 
       // Get user info
       const userInfo = await getUserByUsername(decodedToken.sub, token);
