@@ -261,6 +261,22 @@
   width: 100%;
   padding: 1rem;
   font-size: 1rem;
+  background-color: #003F1F;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.mobile-join-btn:hover {
+  background-color: #002c16;
+  transform: translateY(-2px);
 }
 
 /* MENU OVERLAY */

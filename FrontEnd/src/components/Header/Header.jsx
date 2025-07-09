@@ -16,7 +16,7 @@ const Header = () => {
     const isAuthenticated = useSelector(selectIsAuthenticated);
     const username = useSelector(selectUsername);
     const cartItemsCount = useSelector(selectCartItemCount);
-    
+
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -65,12 +65,12 @@ const Header = () => {
                     <Link to="/players" className="nav-link">Explore</Link>
                     <Link to="/dashboard" className="nav-link">My Team</Link>
                     <Link to="/cart" className="nav-link">
-                    Cart ({cartItemsCount})
+                        Cart ({cartItemsCount})
                     </Link>
                 </nav>
 
                 {/* USER ACTIONS - Desktop */}
-                <div className="join-button desktop-join">
+                <div className="logOut-button desktop-join">
                     {isAuthenticated ? (
                         <button className="logOut-btn" onClick={handleLogout}>
                             Log Out 👥
@@ -98,7 +98,8 @@ const Header = () => {
 
             {/* MOBILE MENU */}
             <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
-                {/* SEARCH BAR - Mobile */}
+                {/* SEARCH BAR - Mobile (Comentada para mantener consistencia) */}
+                {/*
                 <div className="search-container mobile-search">
                     <input
                         type="text"
@@ -110,23 +111,30 @@ const Header = () => {
                     />
                     <button className="search-btn" onClick={handleSearch}>🔍</button>
                 </div>
+                */}
 
                 {/* NAVIGATION - Mobile */}
                 <nav className="mobile-nav">
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Buy</Link>
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Sell</Link>
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Borrowing</Link>
-                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Trade</Link>
-                    <Link to="/dashboard" className="mobile-nav-link" onClick={toggleMenu}>My team</Link>
+                    <Link to="/players" className="mobile-nav-link" onClick={toggleMenu}>Explore</Link>
+                    <Link to="/dashboard" className="mobile-nav-link" onClick={toggleMenu}>My Team</Link>
+                    <Link to="/cart" className="mobile-nav-link" onClick={toggleMenu}>
+                        Cart ({cartItemsCount})
+                    </Link>
                 </nav>
 
                 {/* USER ACTIONS - Mobile */}
                 <div className="mobile-join">
-                    <Link to="/join" onClick={toggleMenu}>
-                        <button className="join-btn mobile-join-btn">
-                            Join 👥
+                    {isAuthenticated ? (
+                        <button className="logOut-btn mobile-join-btn" onClick={handleLogout}>
+                            Log Out 👥
                         </button>
-                    </Link>
+                    ) : (
+                        <Link to="/login" onClick={toggleMenu}>
+                            <button className="logOut-btn mobile-join-btn">
+                                Log In 👥
+                            </button>
+                        </Link>
+                    )}
                 </div>
             </div>
 
