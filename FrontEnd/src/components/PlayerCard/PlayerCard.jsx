@@ -1,6 +1,9 @@
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
+import { addToCart } from '../../store/slices/cartSlice';
+import { selectCartUserId } from '../../store/slices/cartSlice';
 import './playerCard.css';
 
 const FifaPlayerCard = ({ player, compact = false, clubName }) => {
@@ -18,6 +21,8 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
   } = player || {};
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const userId = useSelector(selectCartUserId);
   const handleClick = () => {
     navigate(`/player/${id}`);
   };
@@ -29,6 +34,11 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
     }
   };
 
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    dispatch(addToCart({ userId, playerId: id }));
+  };
+  const isOwnPlayer = owner?.id === userId;
   const displayName = name && lastName ? `${name} ${lastName}` : name || 'Unknown Player';
   console.log(clubName)
   return (
@@ -72,6 +82,7 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
       )}
 
       <div className="fifa-price">${price}</div>
+
     </div>
   );
 };

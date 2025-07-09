@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import { selectIsAuthenticated, selectUsername } from '../../store/slices/authSlice';
 import './Header.css';
+import { selectCartItemCount } from '../../store/slices/cartSlice';
 
 // COMPONENTE HEADER
 const Header = () => {
@@ -14,6 +15,8 @@ const Header = () => {
     const navigate = useNavigate();
     const isAuthenticated = useSelector(selectIsAuthenticated);
     const username = useSelector(selectUsername);
+    const cartItemsCount = useSelector(selectCartItemCount);
+    
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -61,7 +64,9 @@ const Header = () => {
                 <nav className="nav desktop-nav">
                     <Link to="/players" className="nav-link">Explore</Link>
                     <Link to="/dashboard" className="nav-link">My Team</Link>
-                    <Link to="/cart" className="nav-link">Cart</Link>
+                    <Link to="/cart" className="nav-link">
+                    Cart ({cartItemsCount})
+                    </Link>
                 </nav>
 
                 {/* USER ACTIONS - Desktop */}
