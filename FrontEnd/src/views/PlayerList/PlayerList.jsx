@@ -85,7 +85,12 @@ const PlayerList = () => {
 
             <div className="player-list">
                 {players.map(player => (
-                    <FifaPlayerCard key={player.id} player={player} />
+                    <FifaPlayerCard key={player.id} player={player}clubName={
+                player.owner?.teamName ||
+                player.owner?.clubName ||
+                player.owner?.username ||
+                'Unknown Club'
+            } />
                 ))}
             </div>
         </div>

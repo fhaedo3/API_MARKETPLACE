@@ -53,6 +53,8 @@ const ClubDashboard = () => {
 
         const clubData = await clubResponse.json();
         setClub(clubData);
+    
+
 
         // Verificar si es el club propio
         const loggedUserId = getLoggedUserId();
@@ -94,8 +96,10 @@ const ClubDashboard = () => {
   // Imagen del club
   const clubImage = `/images/Club/${club.teamName?.replace(/\s/g, '_')}/logo.png`;
   const fallbackImage = '/images/Logo.png';
-
+  console.log('Player:', player);
+  console.log('Club:', club);
   return (
+    
     <div className="club-dashboard">
       <div className="club-header">
         <div className="club-info">
@@ -106,6 +110,7 @@ const ClubDashboard = () => {
             onError={e => { e.target.onerror = null; e.target.src = fallbackImage; }}
             style={{ width: 90, height: 90, borderRadius: '50%', background: '#fff', border: '4px solid #FFC75F', marginBottom: 16 }}
           />
+          
           <h1 className="club-name">{club.teamName || club.clubName || club.username || 'Unknown Club'}</h1>
           <div className="club-details">
             <p><strong>Manager:</strong> {club.username}</p>
@@ -133,12 +138,13 @@ const ClubDashboard = () => {
         <h2>Squad</h2>
         {players.length === 0 ? (
           <p className="no-players">This club has no players yet.</p>
+          
         ) : (
           <div className="players-grid">
             {players.map((player) => (
               <PlayerCard 
                 key={player.id} 
-                player={player} 
+                player={player}
                 compact={false}
               />
             ))}

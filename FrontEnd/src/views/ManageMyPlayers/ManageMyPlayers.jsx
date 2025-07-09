@@ -99,12 +99,12 @@ const ManageMyPlayers = () => {
 
                 const allPlayers = await fetchUserPlayers(userInfo.id, token);
                 // Filtrar para mostrar solo jugadores que NO están en venta (están en el club)
-                const playersInClub = allPlayers.filter(player => !player.isForSale);
-                setPlayers(playersInClub);
+                //const playersInClub = allPlayers.filter(player => !player.isForSale);
+                setPlayers(allPlayers);
             } catch (error) {
                 console.error('Error loading data:', error);
                 setError(error.message);
-            } finally {
+            } finally { 
                 setLoading(false);
             }
         };

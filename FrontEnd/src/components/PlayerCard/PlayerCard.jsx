@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
 import './playerCard.css';
 
-const FifaPlayerCard = ({ player, compact = false }) => {
+const FifaPlayerCard = ({ player, compact = false, clubName }) => {
   const {
     name,
     lastName,
@@ -30,7 +30,7 @@ const FifaPlayerCard = ({ player, compact = false }) => {
   };
 
   const displayName = name && lastName ? `${name} ${lastName}` : name || 'Unknown Player';
-
+  console.log(clubName)
   return (
     <div className="fifa-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
       <div className={`fifa-sale-badge ${isForSale ? 'for-sale' : 'not-for-sale'}`}>
@@ -43,11 +43,14 @@ const FifaPlayerCard = ({ player, compact = false }) => {
         className="fifa-player-image"
         onError={(e) => handleImageError(e, id)}
       />
+  
 
       <h2 className="fifa-name">{displayName}</h2>
       <p className="fifa-position">{position}</p>
       <p className="fifa-club" onClick={handleClubClick} title="Click to view club">
-        {player.clubName || owner?.clubName || owner?.teamName || 'Unknown Club'}
+        {clubName || owner?.teamName || 'Unknown Club'}
+      
+
       </p>
 
       {!compact && owner && (
