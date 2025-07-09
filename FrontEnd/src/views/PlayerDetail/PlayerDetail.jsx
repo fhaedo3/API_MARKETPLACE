@@ -9,6 +9,7 @@ const PlayerDetail = () => {
   const [error, setError] = useState(null);
   const [isInCart, setIsInCart] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [isOwnPlayer, setIsOwnPlayer] = useState(false); 
 
   // Función para obtener el userId real consultando la API por username
   const getUserIdFromToken = async (token) => {
@@ -182,6 +183,11 @@ const PlayerDetail = () => {
         if (token) {
           const inCart = await checkPlayerInCart(id, token);
           setIsInCart(inCart);
+
+        const userId = await getUserIdFromToken(token);
+        if (userId && data.ownerId) {
+          setIsOwnPlayer(data.ownerId === userId);
+        }
         }
 
       } catch (err) {
@@ -247,8 +253,10 @@ const PlayerDetail = () => {
               className="buy-button"
               onClick={handleAddToCart}
               disabled={isInCart}
+              disabled={isInCart || isOwnPlayer}
             >
-              {isInCart ? 'In Cart ✓' : 'Add to Cart'}
+             
+               {isOwnPlayer ? 'Player Already in the Club' : isInCart ? 'In Cart ✓' : 'Add to Cart'}
             </button>
           ) : (
             <div className="not-for-sale-banner">This player is not for sale</div>
