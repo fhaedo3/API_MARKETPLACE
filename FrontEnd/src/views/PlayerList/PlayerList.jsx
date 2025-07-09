@@ -35,11 +35,12 @@ const PlayerList = () => {
         setSelectedPosition(position);
         dispatch(setPositionFilter(position));
     };
-
+    
     const handleSaleStatusChange = (status) => {
-        setSelectedSaleStatus(status);
-        dispatch(setSaleStatusFilter(status === 'for-sale'));
+    setSelectedSaleStatus(status);
+    dispatch(setSaleStatusFilter(status)); // Guarda el string: '', 'for-sale', 'not-for-sale'
     };
+    
 
     if (loading) return <p>Loading players...</p>;
     if (error) return <p>Error: {error}</p>;
