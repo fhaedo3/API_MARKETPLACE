@@ -82,16 +82,7 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
       )}
 
       <div className="fifa-price">${price}</div>
-     {/* ✅ Botón Add to Cart */}
-      {isForSale && (
-        <button
-          className={`add-to-cart-btn ${isOwnPlayer ? 'disabled' : ''}`}
-          onClick={handleAddToCart}
-          disabled={isOwnPlayer}
-        >
-          {isOwnPlayer ? 'In Squad' : 'Add to Cart'}
-        </button>
-      )}
+
     </div>
   );
 };
