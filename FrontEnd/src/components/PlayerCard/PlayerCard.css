@@ -76,11 +76,7 @@
   border-radius: 0.25rem;
 }
 
-.fifa-club:hover {
-  background-color: rgba(163, 219, 31, 0.1);
-  color: #FFC75F;
-  transform: scale(1.05);
-}
+
 
 .fifa-characteristics {
   text-align: left;
