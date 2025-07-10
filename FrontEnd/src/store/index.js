@@ -4,6 +4,7 @@ import playerSlice from './slices/playerSlice';
 import cartSlice from './slices/cartSlice';
 import userSlice from './slices/userSlice';
 import checkoutSlice from './slices/checkoutSlice';
+import clubSlice from './slices/clubSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     cart: cartSlice,
     user: userSlice,
     checkout: checkoutSlice,
+    clubs: clubSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,271 +1,249 @@
 import './PlayerDetail.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux'; 
-import { fetchCartItems } from '../../store/slices/cartSlice'; //
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPlayerById } from '../../store/slices/playerSlice';
+import { fetchCartItems, addToCart } from '../../store/slices/cartSlice';
+import { fetchUserByUsername } from '../../store/slices/clubSlice';
 
 const PlayerDetail = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { id } = useParams();
-  const [player, setPlayer] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  // Redux state
+  const { token, user: authUser, isAuthenticated } = useSelector(state => state.auth);
+  const { currentPlayer, loading, error } = useSelector(state => state.players);
+  const { items: cartItems, cartId, userId: cartUserId } = useSelector(state => state.cart);
+
+  // Local state
   const [isInCart, setIsInCart] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [isOwnPlayer, setIsOwnPlayer] = useState(false); 
+  const [toastMessage, setToastMessage] = useState('');
+  const [isOwnPlayer, setIsOwnPlayer] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
-  // Función para obtener el userId real consultando la API por username
-  const getUserIdFromToken = async (token) => {
+  // Función para mostrar toast
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+      setToastMessage('');
+    }, 2500);
+  };
+
+  // Función para decodificar token y obtener username
+  const decodeToken = (token) => {
     try {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
-      const decoded = JSON.parse(jsonPayload);
-      const username = decoded.sub || decoded.username || decoded.name;
-      if (!username) return null;
-
-      // Llama a la API de users para obtener el id real
-      const usersResp = await fetch('http://localhost:8080/users', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!usersResp.ok) return null;
-      const users = await usersResp.json();
-      const user = users.find(u => u.username === username);
-      return user ? user.id : null;
-    } catch {
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decoding token:', error);
       return null;
     }
   };
 
-  // Función para obtener o crear carrito activo
-  const getOrCreateActiveCart = async (userId, token) => {
+  // Función para obtener el userId real del usuario logueado
+  const getCurrentUserId = async () => {
+    if (!token) return null;
+
     try {
-      // Primero intentar obtener el carrito activo
-      const activeCartResponse = await fetch(`http://localhost:8080/shopping-carts/user/${userId}/active`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const decoded = decodeToken(token);
+      const username = decoded.sub || decoded.username || decoded.name;
+      if (!username) return null;
 
-      if (activeCartResponse.ok) {
-        return await activeCartResponse.json();
-      }
-
-      // Si no hay carrito activo (404), crear uno nuevo
-      if (activeCartResponse.status === 404) {
-        const createCartResponse = await fetch('http://localhost:8080/shopping-carts', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: userId,
-            status: 'ACTIVE'
-          }),
-        });
-
-        if (createCartResponse.ok) {
-          return await createCartResponse.json();
-        }
-      }
-
-      throw new Error('Could not get or create cart');
+      // Usar Redux para obtener el usuario por username
+      const result = await dispatch(fetchUserByUsername(username)).unwrap();
+      return result.id;
     } catch (error) {
-      console.error('Error getting/creating cart:', error);
-      throw error;
+      console.error('Error getting current user ID:', error);
+      return null;
     }
   };
 
-  // Función para verificar si el jugador está en el carrito
-  const checkPlayerInCart = async (playerId, token) => {
-    try {
-      const userId = await getUserIdFromToken(token);
-      if (!userId) return false;
-
-      const cart = await getOrCreateActiveCart(userId, token);
-      if (!cart) return false;
-
-      const cartItemsResponse = await fetch(`http://localhost:8080/cart-items/cart/${cart.id}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (!cartItemsResponse.ok) return false;
-
-      const cartItems = await cartItemsResponse.json();
-      return cartItems.some(item => item.playerId === parseInt(playerId));
-    } catch (error) {
-      console.error('Error checking cart:', error);
-      return false;
-    }
-  };
-
-  // Función para agregar al carrito
+  // Función para agregar al carrito usando Redux
   const handleAddToCart = async () => {
+    if (!isAuthenticated || !token) {
+      showToastMessage('Please log in to add items to cart');
+      navigate('/login');
+      return;
+    }
+
     if (isInCart) {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
-      dispatch(fetchCartItems());
+      showToastMessage('Player already in cart!');
+      return;
+    }
+
+    if (isOwnPlayer) {
+      showToastMessage('Cannot add your own player to cart');
+      return;
+    }
+
+    if (!currentPlayer.isForSale) {
+      showToastMessage('This player is not for sale');
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please log in to add items to cart');
-        return;
-      }
+      // Primero asegurarse de que tenemos el carrito actualizado
+      await dispatch(fetchCartItems()).unwrap();
 
-      const userId = await getUserIdFromToken(token);
-      if (!userId) {
-        alert('Error getting user information');
-        return;
-      }
+      // Luego agregar el item
+      await dispatch(addToCart({
+        userId: cartUserId,
+        playerId: currentPlayer.id
+      })).unwrap();
 
-      // Obtener o crear carrito activo
-      const cart = await getOrCreateActiveCart(userId, token);
-      if (!cart) {
-        alert('Error accessing cart');
-        return;
-      }
-
-      // Agregar item al carrito usando el ID real del carrito
-      const response = await fetch('http://localhost:8080/cart-items/add-to-cart', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          cartId: cart.id.toString(), // Usar el ID real del carrito
-          playerId: player.id.toString(),
-          quantity: '1',
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error:', errorText);
-        throw new Error(`Server error: ${response.status}`);
-      }
+      // Actualizar el carrito después de agregar
+      await dispatch(fetchCartItems()).unwrap();
 
       setIsInCart(true);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
-      dispatch(fetchCartItems());
-
+      showToastMessage('Player added to cart!');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Error adding player to cart: ' + error.message);
+      showToastMessage('Error adding player to cart: ' + error);
     }
   };
 
+  // Verificar si el jugador está en el carrito
   useEffect(() => {
-    const fetchPlayer = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    if (currentPlayer && cartItems.length > 0) {
+      const playerInCart = cartItems.some(item => item.id === currentPlayer.id);
+      setIsInCart(playerInCart);
+    }
+  }, [currentPlayer, cartItems]);
 
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:8080/players/${id}`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        });
-
-        if (!response.ok) throw new Error('Error fetching player');
-
-        const data = await response.json();
-
-        // Procesar características
-        data.characteristics = data.characteristics
-          ? Array.isArray(data.characteristics)
-            ? data.characteristics
-            : data.characteristics.split(',').map(c => c.trim())
-          : [];
-
-        setPlayer(data);
-
-        // Verificar si está en el carrito solo si el usuario está logueado
-        if (token) {
-          const inCart = await checkPlayerInCart(id, token);
-          setIsInCart(inCart);
-
-        const userId = await getUserIdFromToken(token);
-        if (userId && data.ownerId) {
-          setIsOwnPlayer(data.ownerId === userId);
+  // Verificar si es el propio jugador
+  useEffect(() => {
+    const checkOwnPlayer = async () => {
+      if (currentPlayer && currentPlayer.ownerId && isAuthenticated) {
+        const userId = await getCurrentUserId();
+        if (userId) {
+          setCurrentUserId(userId);
+          setIsOwnPlayer(currentPlayer.ownerId === userId);
         }
-        }
-
-      } catch (err) {
-        console.error('Error fetching player:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchPlayer();
-  }, [id]);
+    checkOwnPlayer();
+  }, [currentPlayer, isAuthenticated, token]);
 
-  if (loading) return <div className="player-detail"><h2>Loading...</h2></div>;
-  if (error) return <div className="player-detail"><h2>Error: {error}</h2></div>;
-  if (!player) return <div className="player-detail"><h2>Player not found</h2></div>;
+  // Fetch inicial de datos
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchPlayerById(id));
+    }
+
+    // Fetch cart items if authenticated
+    if (isAuthenticated && token) {
+      dispatch(fetchCartItems());
+    }
+  }, [id, dispatch, isAuthenticated, token]);
+
+  if (loading) {
+    return (
+      <div className="player-detail">
+        <h2>Loading...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="player-detail">
+        <h2>Error: {error}</h2>
+        <button onClick={() => dispatch(fetchPlayerById(id))}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!currentPlayer) {
+    return (
+      <div className="player-detail">
+        <h2>Player not found</h2>
+        <button onClick={() => navigate('/players')}>
+          Back to Players
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
       {showToast && (
         <div className="toast">
-          {isInCart ? 'Player already in cart!' : 'Player added to cart!'}
+          {toastMessage}
         </div>
       )}
       <div className="player-detail">
         <div className="player-header">
           <img
-            src={player.image || 'https://via.placeholder.com/120'}
-            alt={player.name || 'Player'}
+            src={currentPlayer.image || 'https://via.placeholder.com/120'}
+            alt={currentPlayer.name || 'Player'}
             className="player-image"
             onError={(e) => (e.target.src = 'https://via.placeholder.com/120')}
           />
           <h1 className="player-bio">
-            {player.name && player.lastName ? `${player.name} ${player.lastName}` : player.name || 'Unknown Player'}
+            {currentPlayer.name && currentPlayer.lastName
+              ? `${currentPlayer.name} ${currentPlayer.lastName}`
+              : currentPlayer.name || 'Unknown Player'}
           </h1>
         </div>
+
         <div className="player-bio">
-          <p><strong>Position:</strong> {player.position || 'N/A'}</p>
-          <p><strong>Rating:</strong> {player.rating || 'N/A'}</p>
-          <p><strong>Price:</strong> ${player.price?.toLocaleString() || 'N/A'}</p>
-          <p><strong>Club:</strong> {player.clubName || 'Unknown Club'}</p>
-          <p><strong>Owner:</strong> {player.ownerName || '-'}</p>
+          <p><strong>Position:</strong> {currentPlayer.position || 'N/A'}</p>
+          <p><strong>Rating:</strong> {currentPlayer.rating || 'N/A'}</p>
+          <p><strong>Price:</strong> ${currentPlayer.price?.toLocaleString() || 'N/A'}</p>
+          <p><strong>Club:</strong> {currentPlayer.clubName || 'Unknown Club'}</p>
+          <p><strong>Owner:</strong> {currentPlayer.ownerName || '-'}</p>
           <p>
-            <strong>Status:</strong> {player.isForSale ? (
+            <strong>Status:</strong> {currentPlayer.isForSale ? (
               <span className="for-sale-label">FOR SALE</span>
             ) : (
               <span className="not-for-sale-label">NOT FOR SALE</span>
             )}
           </p>
         </div>
+
         <div className="player-info">
           <p><strong>Characteristics:</strong></p>
           <ul>
-            {player.characteristics && player.characteristics.length > 0
-              ? player.characteristics.map((charac, idx) => <li key={idx}>{charac}</li>)
+            {currentPlayer.characteristics && currentPlayer.characteristics.length > 0
+              ? currentPlayer.characteristics.map((charac, idx) => (
+                <li key={idx}>{charac}</li>
+              ))
               : <li>No characteristics available</li>
             }
           </ul>
         </div>
+
         <div className="player-actions-detail">
-          {player.isForSale ? (
+          {currentPlayer.isForSale ? (
             <button
               className="buy-button"
               onClick={handleAddToCart}
-              
-              disabled={isInCart}
-              disabled={isInCart || isOwnPlayer}
+              disabled={isInCart || isOwnPlayer || !isAuthenticated}
             >
-             
-               {isOwnPlayer ? 'Player Already in the Club' : isInCart ? 'In Cart ✓' : 'Add to Cart'}
+              {!isAuthenticated
+                ? 'Login to Add to Cart'
+                : isOwnPlayer
+                  ? 'Player Already in the Club'
+                  : isInCart
+                    ? 'In Cart ✓'
+                    : 'Add to Cart'
+              }
             </button>
           ) : (
-            <div className="not-for-sale-banner">This player is not for sale</div>
+            <div className="not-for-sale-banner">
+              This player is not for sale
+            </div>
           )}
         </div>
       </div>
