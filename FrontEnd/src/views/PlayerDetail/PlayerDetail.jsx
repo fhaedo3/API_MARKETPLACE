@@ -225,7 +225,7 @@ const PlayerDetail = () => {
             className="player-image"
             onError={(e) => (e.target.src = 'https://via.placeholder.com/120')}
           />
-          <h1 className="player-name">
+          <h1 className="player-bio">
             {player.name && player.lastName ? `${player.name} ${player.lastName}` : player.name || 'Unknown Player'}
           </h1>
         </div>
