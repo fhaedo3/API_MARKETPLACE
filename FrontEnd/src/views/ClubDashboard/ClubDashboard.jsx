@@ -144,6 +144,7 @@ const ClubDashboard = () => {
               <PlayerCard 
                 key={player.id} 
                 player={player}
+                clubName={club.teamName || club.clubName || club.username || 'Unknown Club'}
                 compact={false}
               />
             ))}
