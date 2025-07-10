@@ -1,7 +1,7 @@
 import './PlayerDetail.css';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux'; // ✅ AGREGA ESTO
+import { useDispatch } from 'react-redux'; 
 import { fetchCartItems } from '../../store/slices/cartSlice'; //
 
 const PlayerDetail = () => {
