@@ -514,8 +514,12 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded, showToastMessage }) 
                 characteristics: formData.characteristics,
                 price: parseFloat(formData.price),
                 isForSale: formData.isForSale,
-                ownerId: userInfo.id
+                ownerId: userInfo.id,
+                image: imageUrl  // Agregar la imagen al objeto player
             };
+
+            console.log('Sending player data with image:', playerData);
+            console.log('Image URL to save in DB:', imageUrl);
 
             formDataToSend.append('player', new Blob([JSON.stringify(playerData)], {
                 type: 'application/json'
