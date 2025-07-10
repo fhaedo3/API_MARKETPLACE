@@ -1,8 +1,11 @@
 import './PlayerDetail.css';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux'; // ✅ AGREGA ESTO
+import { fetchCartItems } from '../../store/slices/cartSlice'; //
 
 const PlayerDetail = () => {
+  const dispatch = useDispatch();
   const { id } = useParams();
   const [player, setPlayer] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -102,6 +105,7 @@ const PlayerDetail = () => {
     if (isInCart) {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
+      dispatch(fetchCartItems());
       return;
     }
 
@@ -148,6 +152,7 @@ const PlayerDetail = () => {
       setIsInCart(true);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
+      dispatch(fetchCartItems());
 
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -252,6 +257,7 @@ const PlayerDetail = () => {
             <button
               className="buy-button"
               onClick={handleAddToCart}
+              
               disabled={isInCart}
               disabled={isInCart || isOwnPlayer}
             >

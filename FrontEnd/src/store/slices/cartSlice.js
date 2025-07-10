@@ -362,11 +362,13 @@ const cartSlice = createSlice({
         state.loading = false;
         state.items = [];
         state.totalAmount = 0;
+        
       })
       .addCase(clearCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
+      
   },
 });
 
