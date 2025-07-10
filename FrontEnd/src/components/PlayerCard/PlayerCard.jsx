@@ -34,10 +34,13 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
     }
   };
 
-  const handleAddToCart = (e) => {
-    e.stopPropagation();
-    dispatch(addToCart({ userId, playerId: id }));
-  };
+const handleAddToCart = (e) => {
+  e.stopPropagation();
+  dispatch(addToCart({ userId, playerId: id }))
+    .then(() => {
+      window.location.reload(); // ✅ Fuerza reload después de agregar
+    });
+};
   const isOwnPlayer = owner?.id === userId;
   const displayName = name && lastName ? `${name} ${lastName}` : name || 'Unknown Player';
   console.log(clubName)
