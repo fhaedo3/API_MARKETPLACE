@@ -880,3 +880,49 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Toast Message */
+.toast-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, var(--primary-green), #45a049);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+  z-index: 1000;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  animation: slideInRight 0.3s ease-out;
+  transition: all 0.3s ease;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+.toast-message:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(76, 175, 80, 0.5);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Toast dentro del modal */
+.modal-toast {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 1001 !important;
+  max-width: 250px !important;
+  font-size: 0.9rem !important;
+}

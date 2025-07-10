@@ -15,7 +15,21 @@ const ManageMyPlayers = () => {
     const [editingPlayerPrice, setEditingPlayerPrice] = useState(null); // Para editar solo precio
     const [newPrice, setNewPrice] = useState('');
     const [playerToSell, setPlayerToSell] = useState(null);
+    
+    // Estado para toast
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    
     const navigate = useNavigate();
+
+    // Función para mostrar toast
+    const showToastMessage = (message) => {
+        setToastMessage(message);
+        setShowToast(true);
+        setTimeout(() => {
+            setShowToast(false);
+        }, 2000);
+    };
 
     // Funciones de utilidad
     const decodeToken = (token) => {
@@ -131,22 +145,20 @@ const ManageMyPlayers = () => {
             }
 
             const updatedPlayer = await response.json();
-
-            if (newSaleStatus) {
-                // Si se pone en venta, remover del club (lista local)
-                setPlayers(prev => prev.filter(p => p.id !== playerId));
-                alert('Player is now for sale and has been moved to the marketplace!');
-            } else {
-                // Si se quita de venta, agregar al club (lista local)
-                setPlayers(prev => [...prev, updatedPlayer]);
-                alert('Player has been removed from sale and is back in your club!');
-            }
-            window.location.reload();
+            
+            // Actualizar el jugador en la lista local
+            setPlayers(prev => prev.map(p => p.id === playerId ? updatedPlayer : p));
+            
+            // Mostrar mensaje de éxito
+            const message = newSaleStatus 
+                ? 'Jugador puesto en venta exitosamente'
+                : 'Jugador retirado de venta exitosamente';
+            showToastMessage(message);
 
             setPlayerToSell(null);
         } catch (error) {
             console.error('Error updating sale status:', error);
-            alert('Error updating sale status. Please try again.');
+            showToastMessage('Error al actualizar estado de venta. Inténtalo de nuevo.');
         }
     };
 
@@ -155,7 +167,7 @@ const ManageMyPlayers = () => {
         try {
             const price = parseFloat(newPrice);
             if (isNaN(price) || price <= 0) {
-                alert('Please enter a valid price greater than 0');
+                showToastMessage('Por favor ingresa un precio válido mayor a 0');
                 return;
             }
 
@@ -176,10 +188,10 @@ const ManageMyPlayers = () => {
             setPlayers(prev => prev.map(p => p.id === playerId ? updatedPlayer : p));
             setEditingPlayerPrice(null);
             setNewPrice('');
-            alert('Price updated successfully!');
+            showToastMessage('Precio modificado exitosamente');
         } catch (error) {
             console.error('Error updating price:', error);
-            alert('Error updating price. Please try again.');
+            showToastMessage('Error al actualizar precio. Inténtalo de nuevo.');
         }
     };
 
@@ -203,10 +215,10 @@ const ManageMyPlayers = () => {
             const updatedPlayer = await response.json();
             setPlayers(prev => prev.map(p => p.id === playerId ? updatedPlayer : p));
             setEditingPlayerData(null);
-            alert('Player updated successfully!');
+            showToastMessage('Jugador actualizado exitosamente');
         } catch (error) {
             console.error('Error updating player:', error);
-            alert('Error updating player. Please try again.');
+            showToastMessage('Error al actualizar jugador. Inténtalo de nuevo.');
         }
     };
 
@@ -275,8 +287,8 @@ const ManageMyPlayers = () => {
                                     className="player-image"
                                     onError={(e) => handleImageError(e, player.id)}
                                 />
-                                <div className="sale-status not-for-sale">
-                                    IN SQUAD
+                                <div className={`sale-status ${player.isForSale ? 'for-sale' : 'not-for-sale'}`}>
+                                    {player.isForSale ? 'FOR SALE' : 'NOT FOR SALE'}
                                 </div>
                             </div>
 
@@ -342,33 +354,50 @@ const ManageMyPlayers = () => {
                                     <span className="btn-text">Edit</span>
                                 </button>
 
-                                <button
-                                    onClick={() => setPlayerToSell(player)}
-                                    className="action-btn toggle-sale-btn put-for-sale"
-                                    title="Put on marketplace"
-                                >
-                                    <span className="btn-icon">💰</span>
-                                    <span className="btn-text">Put for Sale</span>
-                                </button>
+                                {!player.isForSale ? (
+                                    <button
+                                        onClick={() => setPlayerToSell(player)}
+                                        className="action-btn toggle-sale-btn put-for-sale"
+                                        title="Put on marketplace"
+                                    >
+                                        <span className="btn-icon">💰</span>
+                                        <span className="btn-text">Put for Sale</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => setPlayerToSell(player)}
+                                        className="action-btn toggle-sale-btn remove-from-sale"
+                                        title="Remove from marketplace"
+                                    >
+                                        <span className="btn-icon">🏠</span>
+                                        <span className="btn-text">Remove from Sale</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Modal de confirmación para poner en venta */}
+            {/* Modal de confirmación para cambiar estado de venta */}
             {playerToSell && (
                 <div className="modal-overlay" onClick={() => setPlayerToSell(null)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="sale-warning">
-                            <div className="sale-warning-icon">💰</div>
-                            <h2>Put Player for Sale</h2>
+                            <div className="sale-warning-icon">{playerToSell.isForSale ? '🏠' : '💰'}</div>
+                            <h2>{playerToSell.isForSale ? 'Remove Player from Sale' : 'Put Player for Sale'}</h2>
                             <p>
-                                Are you sure you want to put <strong>{playerToSell.name}</strong> for sale?
+                                Are you sure you want to {playerToSell.isForSale ? 'remove' : 'put'} <strong>{playerToSell.name}</strong> {playerToSell.isForSale ? 'from sale' : 'for sale'}?
                             </p>
-                            <p>
-                                The player will be moved to the marketplace and will no longer appear in your club until removed from sale.
-                            </p>
+                            {!playerToSell.isForSale ? (
+                                <p>
+                                    The player will be moved to the marketplace and other users will be able to purchase them.
+                                </p>
+                            ) : (
+                                <p>
+                                    The player will be removed from the marketplace and returned to your squad.
+                                </p>
+                            )}
                             <p>Current price: <strong>${playerToSell.price?.toLocaleString() || '0'}</strong></p>
                         </div>
                         <div className="form-actions">
@@ -376,7 +405,7 @@ const ManageMyPlayers = () => {
                                 onClick={() => togglePlayerSale(playerToSell.id, playerToSell.isForSale)}
                                 className="confirm-sale-btn"
                             >
-                                Yes, Put for Sale
+                                {playerToSell.isForSale ? 'Yes, Remove from Sale' : 'Yes, Put for Sale'}
                             </button>
                             <button
                                 onClick={() => setPlayerToSell(null)}
@@ -394,6 +423,7 @@ const ManageMyPlayers = () => {
                 <AddPlayerModal
                     userInfo={userInfo}
                     onClose={() => setShowAddForm(false)}
+                    showToastMessage={showToastMessage}
                     onPlayerAdded={(newPlayer) => {
                         // Solo agregar a la lista si NO está marcado para venta
                         if (!newPlayer.isForSale) {
@@ -402,9 +432,9 @@ const ManageMyPlayers = () => {
                         setShowAddForm(false);
 
                         const message = newPlayer.isForSale
-                            ? 'Player created and put for sale in the marketplace!'
-                            : 'Player created and added to your club!';
-                        alert(message);
+                            ? 'Jugador creado y puesto en venta en el mercado!'
+                            : 'Jugador creado y agregado a tu club!';
+                        showToastMessage(message);
                     }}
                 />
             )}
@@ -417,21 +447,30 @@ const ManageMyPlayers = () => {
                     onPlayerUpdated={updatePlayer}
                 />
             )}
+
+            {/* Toast para mostrar mensajes */}
+            {showToast && (
+                <div 
+                    className="toast-message" 
+                    onClick={() => setShowToast(false)}
+                >
+                    {toastMessage}
+                </div>
+            )}
         </div>
     );
 };
 
 // Componente modal para agregar jugador
-const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
+const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded, showToastMessage }) => {
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
         lastName: '',
         position: '',
         rating: '',
         characteristics: '',
         price: '',
-        isForSale: false,
-        image: null
+        isForSale: false
     });
     const [loading, setLoading] = useState(false);
 
@@ -457,12 +496,19 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const formDataToSend = new FormData();
+            
+            // Combinar firstName y lastName en un solo name
+            const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+            
+            // Generar número aleatorio para la imagen (0-99)
+            const randomImageNumber = Math.floor(Math.random() * 100);
+            const imageUrl = `https://randomuser.me/api/portraits/men/${randomImageNumber}.jpg`;
 
-            // Crear el objeto player
+            // Crear el objeto player usando FormData como antes
+            const formDataToSend = new FormData();
+            
             const playerData = {
-                name: formData.name,
-                lastName: formData.lastName,
+                name: fullName,
                 position: formData.position,
                 rating: parseInt(formData.rating),
                 characteristics: formData.characteristics,
@@ -475,9 +521,8 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                 type: 'application/json'
             }));
 
-            if (formData.image) {
-                formDataToSend.append('image', formData.image);
-            }
+            console.log('Sending player data:', playerData);
+            console.log('Token available:', !!token);
 
             const response = await fetch('http://localhost:8080/players', {
                 method: 'POST',
@@ -487,15 +532,25 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                 body: formDataToSend,
             });
 
+            console.log('Response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('Error creating player');
+                const errorText = await response.text();
+                console.log('Error response body:', errorText);
+                throw new Error(`Error creating player: ${response.status} - ${errorText}`);
             }
 
             const newPlayer = await response.json();
+            
+            // Agregar la URL de imagen al jugador después de crearlo
+            if (newPlayer && !newPlayer.image) {
+                newPlayer.image = imageUrl;
+            }
+            
             onPlayerAdded(newPlayer);
         } catch (error) {
             console.error('Error creating player:', error);
-            alert('Error creating player. Please try again.');
+            showToastMessage('Error al crear jugador. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -511,11 +566,12 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                             <label>First Name:</label>
                             <input
                                 type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                 required
                                 minLength={2}
                                 maxLength={50}
+                                placeholder="Roberto"
                             />
                         </div>
                         <div className="form-group">
@@ -525,6 +581,7 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                                 value={formData.lastName}
                                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                 maxLength={50}
+                                placeholder="Carlos"
                             />
                         </div>
                     </div>
@@ -589,15 +646,6 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
                         </label>
                     </div>
 
-                    <div className="form-group">
-                        <label>Player Image:</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                        />
-                    </div>
-
                     <div className="form-actions">
                         <button type="submit" disabled={loading} className="submit-btn">
                             {loading ? 'Creating...' : 'Create Player'}
@@ -616,7 +664,6 @@ const AddPlayerModal = ({ userInfo, onClose, onPlayerAdded }) => {
 const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
     const [formData, setFormData] = useState({
         name: player.name || '',
-        lastName: player.lastName || '',
         position: player.position || '',
         rating: player.rating || '',
         pace: player.pace || '',
@@ -625,10 +672,22 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
         dribbling: player.dribbling || '',
         defending: player.defending || '',
         physical: player.physical || '',
-        characteristics: player.characteristics || '',
-        price: player.price || ''
+        characteristics: player.characteristics || ''
     });
     const [loading, setLoading] = useState(false);
+    
+    // Estado para toast
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    
+    // Función para mostrar toast
+    const showToastMessage = (message) => {
+        setToastMessage(message);
+        setShowToast(true);
+        setTimeout(() => {
+            setShowToast(false);
+        }, 2000);
+    };
 
     const positions = [
         'Goalkeeper',
@@ -653,20 +712,13 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
         try {
             // Validaciones básicas
             if (formData.rating < 1 || formData.rating > 100) {
-                alert('Rating must be between 1 and 100');
-                setLoading(false);
-                return;
-            }
-
-            if (formData.price <= 0) {
-                alert('Price must be greater than 0');
+                showToastMessage('El rating debe estar entre 1 y 100');
                 setLoading(false);
                 return;
             }
 
             const updatedData = {
                 name: formData.name,
-                lastName: formData.lastName,
                 position: formData.position,
                 rating: parseInt(formData.rating),
                 pace: formData.pace ? parseInt(formData.pace) : null,
@@ -675,14 +727,14 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
                 dribbling: formData.dribbling ? parseInt(formData.dribbling) : null,
                 defending: formData.defending ? parseInt(formData.defending) : null,
                 physical: formData.physical ? parseInt(formData.physical) : null,
-                characteristics: formData.characteristics,
-                price: parseFloat(formData.price)
+                characteristics: formData.characteristics
             };
 
             await onPlayerUpdated(player.id, updatedData);
+            showToastMessage('Jugador actualizado exitosamente');
         } catch (error) {
             console.error('Error updating player:', error);
-            alert('Error updating player. Please try again.');
+            showToastMessage('Error actualizando jugador. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -693,27 +745,17 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
             <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
                 <h2>Edit Player: {player.name}</h2>
                 <form onSubmit={handleSubmit} className="edit-player-form">
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>First Name:</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                                minLength={2}
-                                maxLength={50}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Last Name:</label>
-                            <input
-                                type="text"
-                                value={formData.lastName}
-                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                maxLength={50}
-                            />
-                        </div>
+                    <div className="form-group">
+                        <label>Full Name:</label>
+                        <input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                            minLength={2}
+                            maxLength={100}
+                            placeholder="Enter full name (e.g., Roberto Carlos)"
+                        />
                     </div>
 
                     <div className="form-row">
@@ -743,72 +785,6 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
                         </div>
                     </div>
 
-                    <div className="stats-section">
-                        <h3>Player Stats (Optional)</h3>
-                        <div className="stats-grid">
-                            <div className="form-group">
-                                <label>Pace:</label>
-                                <input
-                                    type="number"
-                                    value={formData.pace}
-                                    onChange={(e) => setFormData({ ...formData, pace: e.target.value })}
-                                    min={1}
-                                    max={100}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Shooting:</label>
-                                <input
-                                    type="number"
-                                    value={formData.shooting}
-                                    onChange={(e) => setFormData({ ...formData, shooting: e.target.value })}
-                                    min={1}
-                                    max={100}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Passing:</label>
-                                <input
-                                    type="number"
-                                    value={formData.passing}
-                                    onChange={(e) => setFormData({ ...formData, passing: e.target.value })}
-                                    min={1}
-                                    max={100}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Dribbling:</label>
-                                <input
-                                    type="number"
-                                    value={formData.dribbling}
-                                    onChange={(e) => setFormData({ ...formData, dribbling: e.target.value })}
-                                    min={1}
-                                    max={100}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Defending:</label>
-                                <input
-                                    type="number"
-                                    value={formData.defending}
-                                    onChange={(e) => setFormData({ ...formData, defending: e.target.value })}
-                                    min={1}
-                                    max={100}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Physical:</label>
-                                <input
-                                    type="number"
-                                    value={formData.physical}
-                                    onChange={(e) => setFormData({ ...formData, physical: e.target.value })}
-                                    min={1}
-                                    max={100}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="form-group">
                         <label>Characteristics:</label>
                         <textarea
@@ -816,18 +792,6 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
                             onChange={(e) => setFormData({ ...formData, characteristics: e.target.value })}
                             placeholder="Enter characteristics separated by commas"
                             required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Price ($):</label>
-                        <input
-                            type="number"
-                            value={formData.price}
-                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                            required
-                            min={0}
-                            step={0.01}
                         />
                     </div>
 
@@ -840,6 +804,16 @@ const EditPlayerModal = ({ player, onClose, onPlayerUpdated }) => {
                         </button>
                     </div>
                 </form>
+                
+                {/* Toast para mostrar mensajes en el modal */}
+                {showToast && (
+                    <div 
+                        className="toast-message modal-toast" 
+                        onClick={() => setShowToast(false)}
+                    >
+                        {toastMessage}
+                    </div>
+                )}
             </div>
         </div>
     );
