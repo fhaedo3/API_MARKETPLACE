@@ -2,44 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCartItems, clearCart } from '../../store/slices/cartSlice';
-import { fetchUserBalance, updateUserBalance } from '../../store/slices/userSlice';
 import { selectCartItems, selectCartTotal, selectCartLoading } from '../../store/slices/cartSlice';
-import { selectUserBalance, selectBalanceLoading } from '../../store/slices/userSlice';
 import { selectUserId, selectUsername, selectIsAuthenticated, selectToken } from '../../store/slices/authSlice';
+import { processPayment, selectCheckoutProcessing, selectCheckoutError, selectPaymentSuccess, selectTransactionId, resetCheckout } from '../../store/slices/checkoutSlice';
 import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-
+  
   // Redux state
   const cartItems = useSelector(selectCartItems);
   const cartTotal = useSelector(selectCartTotal);
   const cartLoading = useSelector(selectCartLoading);
-  const userBalance = useSelector(selectUserBalance);
-  const balanceLoading = useSelector(selectBalanceLoading);
   const userId = useSelector(selectUserId);
   const username = useSelector(selectUsername);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const token = useSelector(selectToken);
-
-  const [loading, setLoading] = useState(false);
+  
+  // Checkout state
+  const checkoutProcessing = useSelector(selectCheckoutProcessing);
+  const checkoutError = useSelector(selectCheckoutError);
+  const paymentSuccess = useSelector(selectPaymentSuccess);
+  const transactionId = useSelector(selectTransactionId);
+  
   const [error, setError] = useState(null);
-
-  // Datos del formulario de pago con valores por defecto
+  
+  // Datos del formulario de pago
   const [paymentData, setPaymentData] = useState({
-    cardNumber: '4532 1234 5678 9012',
-    expiryDate: '12/26',
-    cvv: '123',
-    cardHolder: 'John Doe',
-    email: 'john.doe@example.com',
-    address: '123 Main Street',
-    city: 'New York',
-    zipCode: '10001'
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardHolder: '',
+    email: '',
+    address: '',
+    city: '',
+    zipCode: ''
   });
 
-  // Cargar datos del carrito y balance al montar el componente
+  // Cargar datos del carrito al montar el componente
   useEffect(() => {
     // Verificar autenticación primero
     if (!isAuthenticated || !token) {
@@ -54,10 +56,8 @@ const Checkout = () => {
       if (cartItems.length === 0) {
         dispatch(fetchCartItems());
       }
-
-      if (userId) {
-        dispatch(fetchUserBalance(userId));
-      }
+      // Resetear estado del checkout al montar
+      dispatch(resetCheckout());
     }
   }, [dispatch, isAuthenticated, token, userId, navigate]);
 
@@ -110,31 +110,18 @@ const Checkout = () => {
     }
   };
 
-  // Formatear fecha de expiración - CORREGIDO
+  // Formatear fecha de expiración
   const formatExpiryDate = (value) => {
-    // Remover todo lo que no sea número
-    const v = value.replace(/\D/g, '');
-
-    // Si está vacío, retornar vacío
-    if (v === '') return '';
-
-    // Si solo tiene 1 dígito, retornarlo
-    if (v.length === 1) return v;
-
-    // Si tiene 2 o más dígitos, formatear como MM/YY
+    // Solo permitir números
+    const v = value.replace(/[^0-9]/g, '');
+    
+    // Formatear como MM/YY
     if (v.length >= 2) {
       const month = v.substring(0, 2);
       const year = v.substring(2, 4);
-
-      // Si solo tenemos el mes, retornar mes + /
-      if (v.length === 2) {
-        return `${month}/`;
-      }
-
-      // Si tenemos mes y año, retornar MM/YY
-      return `${month}/${year}`;
+      return year ? `${month}/${year}` : month;
     }
-
+    
     return v;
   };
 
@@ -160,12 +147,12 @@ const Checkout = () => {
   // Validar formulario
   const validateForm = () => {
     const { cardNumber, expiryDate, cvv, cardHolder, email } = paymentData;
-
+    
     if (!cardNumber || cardNumber.replace(/\s/g, '').length < 13) {
       setError('Please enter a valid card number');
       return false;
     }
-
+    
     if (!expiryDate || expiryDate.length < 5) {
       setError('Please enter a valid expiry date (MM/YY)');
       return false;
@@ -177,17 +164,17 @@ const Checkout = () => {
       setError('Please enter a valid month (01-12)');
       return false;
     }
-
+    
     if (!cvv || cvv.length < 3) {
       setError('Please enter a valid CVV');
       return false;
     }
-
+    
     if (!cardHolder.trim()) {
       setError('Please enter the cardholder name');
       return false;
     }
-
+    
     if (!email.trim() || !email.includes('@')) {
       setError('Please enter a valid email address');
       return false;
@@ -196,74 +183,39 @@ const Checkout = () => {
     return true;
   };
 
-  // Procesar compra
+  // Procesar compra usando Redux
   const handlePurchase = async (e) => {
     e.preventDefault();
-
+    
     if (!validateForm()) {
       return;
     }
 
-    // Verificar si el usuario tiene suficiente balance
-    if (userBalance < cartTotal) {
-      setError(`Insufficient balance. You need $${cartTotal.toLocaleString()} but only have $${userBalance.toLocaleString()}.`);
-      return;
-    }
-
-    setLoading(true);
     setError(null);
 
     try {
-      // Simular procesamiento de pago (aquí iría la integración con un procesador de pagos real)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Usar el thunk de Redux para procesar el pago y transferir jugadores
+      const result = await dispatch(processPayment({
+        cartItems,
+        cardData: paymentData
+      })).unwrap();
 
-      // Crear transacciones para cada jugador usando la API
-      const token = localStorage.getItem('token');
-      const transactionPromises = cartItems.map(async (item) => {
-        const player = item.player || item;
-        const response = await fetch(`http://localhost:8080/transactions/create-transfer`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            sellerId: player.ownerId || player.owner?.id,
-            buyerId: userId,
-            playerId: player.id,
-            total: player.price
-          }),
-        });
+      console.log('Payment and transfer successful:', result);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Error processing transfer for ${player.name}: ${errorText}`);
-        }
-
-        return await response.json();
-      });
-
-      await Promise.all(transactionPromises);
-
-      // Actualizar el balance del usuario
-      const newBalance = userBalance - cartTotal;
-      await dispatch(updateUserBalance({ userId, amount: newBalance })).unwrap();
-
-      // Limpiar carrito
+      // Limpiar carrito después del pago exitoso
       await dispatch(clearCart(userId)).unwrap();
 
       // Redirigir a una página de confirmación o dashboard
-      navigate('/dashboard', {
-        state: {
-          successMessage: `Purchase completed! You have successfully acquired ${cartItems.length} player(s) for $${cartTotal.toLocaleString()}.`
+      navigate('/dashboard', { 
+        state: { 
+          successMessage: `Purchase completed! Transaction ID: ${result.transactionId}. You have successfully acquired ${cartItems.length} player(s) for $${cartTotal.toLocaleString()}. Check your team roster!` 
         }
       });
 
     } catch (error) {
       console.error('Error processing purchase:', error);
-      setError(`Error processing purchase: ${error.message}`);
-    } finally {
-      setLoading(false);
+      const errorMessage = typeof error === 'string' ? error : error.message || 'Unknown error occurred';
+      setError(`Error processing purchase: ${errorMessage}`);
     }
   };
 
@@ -297,8 +249,8 @@ const Checkout = () => {
             <div className="order-items">
               {cartItems.map((player) => (
                 <div key={player.id} className="order-item">
-                  <img
-                    src={player.image || '/images/default-player.png'}
+                  <img 
+                    src={player.image || '/images/default-player.png'} 
                     alt={player.name}
                     className="order-item-image"
                   />
@@ -312,7 +264,7 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-
+            
             <div className="order-totals">
               <div className="total-line">
                 <span>Subtotal:</span>
@@ -332,17 +284,17 @@ const Checkout = () => {
           {/* Payment Form */}
           <div className="payment-form">
             <h2>Payment Information</h2>
-
-            {error && (
+            
+            {(error || checkoutError) && (
               <div className="error-message">
-                {error}
+                {error || checkoutError}
               </div>
             )}
 
             <form onSubmit={handlePurchase}>
               <div className="form-section">
                 <h3>Card Details</h3>
-
+                
                 <div className="form-group">
                   <label>Card Number</label>
                   <input
@@ -398,7 +350,7 @@ const Checkout = () => {
 
               <div className="form-section">
                 <h3>Billing Information</h3>
-
+                
                 <div className="form-group">
                   <label>Email</label>
                   <input
@@ -447,12 +399,12 @@ const Checkout = () => {
               </div>
 
               <div className="form-actions">
-                <button
-                  type="submit"
-                  disabled={loading}
+                <button 
+                  type="submit" 
+                  disabled={checkoutProcessing}
                   className="btn-purchase"
                 >
-                  {loading ? 'Processing...' : `Complete Purchase - $${total.toLocaleString()}`}
+                  {checkoutProcessing ? 'Processing...' : `Complete Purchase - $${total.toLocaleString()}`}
                 </button>
               </div>
             </form>
