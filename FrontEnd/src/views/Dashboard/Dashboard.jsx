@@ -1,159 +1,132 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import FifaPlayerCard from '../../components/PlayerCard/PlayerCard';
 import './Dashboard.css';
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { getPlayerImageUrl } from '../../utils/imageUtils';
+import { fetchCurrentUser, selectUserProfile, selectUserLoading, selectUserError } from '../../store/slices/userSlice';
+import { fetchPlayersByOwner, selectUserPlayers, selectPlayersLoading, selectPlayersError } from '../../store/slices/playerSlice';
 
 const Dashboard = () => {
-  const [playersDashboard, setPlayersDashboard] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [userInfo, setUserInfo] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
-  // Función para decodificar el JWT y obtener información del usuario
-  const decodeToken = (token) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  };
+  // Redux state
+  const { token, isAuthenticated } = useSelector(state => state.auth);
+  const userInfo = useSelector(selectUserProfile);
+  const userLoading = useSelector(selectUserLoading);
+  const userError = useSelector(selectUserError);
+  const userPlayers = useSelector(selectUserPlayers);
+  const playersLoading = useSelector(selectPlayersLoading);
+  const playersError = useSelector(selectPlayersError);
 
-  // Función para obtener información del usuario por username
-  const getUserByUsername = async (username, token) => {
-    try {
-      const response = await fetch('http://localhost:8080/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`Error fetching users: ${response.status}`);
-      }
-      const users = await response.json();
-      const user = users.find(u => u.username && u.username.trim().toLowerCase() === username.trim().toLowerCase());
-      if (!user) {
-        console.error('User not found. Username buscado:', username, 'Usernames en base:', users.map(u => u.username));
-        throw new Error('User not found (username: ' + username + ')');
-      }
-      return user;
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-      throw error;
-    }
-  };
+  // Local state
+  const [successMessage, setSuccessMessage] = useState(null);
 
-  // Función para obtener los jugadores del usuario
-  const fetchUserPlayers = async (ownerId, token) => {
-    try {
-      const response = await fetch(`http://localhost:8080/players/owner/${ownerId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.log('User has no players yet');
-          return [];
-        }
-        throw new Error(`Error fetching players: ${response.status}`);
-      }
-      const players = await response.json();
-      if (!players || !Array.isArray(players)) {
-        console.log('No players found or invalid response format');
-        return [];
-      }
-      return players;
-    } catch (error) {
-      console.error('Error fetching user players:', error);
-      if (error.message && error.message.includes('no tiene jugadores')) {
-        console.log('User has no associated players');
-        return [];
-      }
-      throw error;
-    }
-  };
+  // Memoized values
+  const isLoading = useMemo(() => userLoading || playersLoading, [userLoading, playersLoading]);
+  const error = useMemo(() => userError || playersError, [userError, playersError]);
+  const isAuthenticated_ = useMemo(() => isAuthenticated && token, [isAuthenticated, token]);
 
-  useEffect(() => {
-    const loadUserPlayers = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('No authentication token found.');
-          return;
-        }
-        const decodedToken = decodeToken(token);
-        if (!decodedToken) {
-          setError('Invalid authentication token.');
-          return;
-        }
-        if (!decodedToken.sub) {
-          setError('Invalid authentication token: no username.');
-          return;
-        }
-        const userInfo = await getUserByUsername(decodedToken.sub, token);
-        setUserInfo(userInfo);
-        const players = await fetchUserPlayers(userInfo.id, token);
-        const transformedPlayers = players.map(player => ({
-          id: player.id,
-          name: player.name,
-          price: player.price,
-          image: getPlayerImageUrl(player),
-          position: player.position,
-          rating: player.rating,
-          // Corrige characteristics para que siempre sea array
-          characteristics: Array.isArray(player.characteristics)
-            ? player.characteristics
-            : (typeof player.characteristics === 'string' && player.characteristics.length > 0
-                ? player.characteristics.split(',').map(c => c.trim())
-                : []),
-          isForSale: player.isForSale === true, // fuerza booleano
-          ownerId: player.ownerId || (player.owner && player.owner.id) || null
-        }));
-        setPlayersDashboard(transformedPlayers);
-        console.log(`Loaded ${transformedPlayers.length} players for userId ${userInfo.id}`);
-      } catch (error) {
-        console.error('Error loading user players:', error);
-        setError(error.message || 'Error loading your players. Please try again.');
-      } finally {
-        setLoading(false);
+  // Transform user players data for dashboard
+  const playersDashboard = useMemo(() => {
+    if (!userPlayers || !Array.isArray(userPlayers)) return [];
+
+    return userPlayers.map(player => {
+      // Safe characteristics parsing
+      let characteristics = [];
+      if (Array.isArray(player.characteristics)) {
+        characteristics = player.characteristics;
+      } else if (typeof player.characteristics === 'string' && player.characteristics.trim()) {
+        characteristics = player.characteristics.split(',').map(c => c.trim()).filter(c => c);
       }
+
+      return {
+        id: player.id,
+        name: player.name || 'Unknown Player',
+        price: player.price || 0,
+        image: getPlayerImageUrl(player),
+        position: player.position || 'Unknown',
+        rating: player.rating || 0,
+        characteristics,
+        isForSale: Boolean(player.isForSale),
+        ownerId: player.ownerId || player.owner?.id || null
+      };
+    });
+  }, [userPlayers]);
+
+  // Calculate dashboard stats
+  const dashboardStats = useMemo(() => {
+    const totalValue = playersDashboard.reduce((sum, p) => sum + p.price, 0);
+    const playersForSale = playersDashboard.filter(p => p.isForSale).length;
+    const playersNotForSale = playersDashboard.length - playersForSale;
+
+    return {
+      totalValue,
+      playersForSale,
+      playersNotForSale,
+      totalPlayers: playersDashboard.length
     };
-    loadUserPlayers();
-  }, [navigate]);
+  }, [playersDashboard]);
 
-  // Manejar mensajes de éxito del checkout
-  useEffect(() => {
-    if (location.state?.successMessage) {
-      setSuccessMessage(location.state.successMessage);
-      // Limpiar el mensaje después de 5 segundos
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 5000);
-      
-      // Limpiar el state para evitar que persista en navegación
-      window.history.replaceState({}, document.title);
+  // Handle retry
+  const handleRetry = useCallback(() => {
+    if (userInfo?.id) {
+      dispatch(fetchPlayersByOwner(userInfo.id));
+    } else {
+      dispatch(fetchCurrentUser());
     }
-  }, [location.state]);
+  }, [userInfo?.id, dispatch]);
 
-  const totalValue = playersDashboard.reduce((sum, p) => sum + (p.price || 0), 0);
-  const playersForSale = playersDashboard.filter(p => p.isForSale).length;
-  const playersNotForSale = playersDashboard.length - playersForSale;
+  // Clear success message
+  const clearSuccessMessage = useCallback(() => {
+    setSuccessMessage(null);
+  }, []);
 
-  if (loading) {
+  // Navigation handlers
+  const navigateToMarketplace = useCallback(() => navigate('/players'), [navigate]);
+  const navigateToManagePlayers = useCallback(() => navigate('/manage-my-players'), [navigate]);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!isAuthenticated_) {
+      navigate('/login');
+    }
+  }, [isAuthenticated_, navigate]);
+
+  // Fetch current user data
+  useEffect(() => {
+    if (isAuthenticated_ && !userInfo) {
+      dispatch(fetchCurrentUser());
+    }
+  }, [isAuthenticated_, userInfo, dispatch]);
+
+  // Fetch user players when user info is available
+  useEffect(() => {
+    if (userInfo?.id) {
+      dispatch(fetchPlayersByOwner(userInfo.id));
+    }
+  }, [userInfo?.id, dispatch]);
+
+  // Handle success messages from location state
+  useEffect(() => {
+    const message = location.state?.successMessage;
+    if (message) {
+      setSuccessMessage(message);
+
+      // Auto-clear after 5 seconds
+      const timer = setTimeout(clearSuccessMessage, 5000);
+
+      // Clean up state - use navigate to replace state
+      navigate(location.pathname, { replace: true });
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.state?.successMessage, location.pathname, navigate, clearSuccessMessage]);
+
+  // Loading state
+  if (isLoading) {
     return (
       <div className="containerDashboard">
         <div className="dashboard-loading">
@@ -164,14 +137,30 @@ const Dashboard = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="containerDashboard">
         <div className="dashboard-error">
           <h2>Error</h2>
           <p>{error}</p>
-          <button onClick={() => window.location.reload()} className="retry-button">
+          <button onClick={handleRetry} className="retry-button">
             Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No user info state
+  if (!userInfo) {
+    return (
+      <div className="containerDashboard">
+        <div className="dashboard-error">
+          <h2>User information not available</h2>
+          <p>Please try logging in again.</p>
+          <button onClick={() => navigate('/login')} className="retry-button">
+            Go to Login
           </button>
         </div>
       </div>
@@ -180,52 +169,52 @@ const Dashboard = () => {
 
   return (
     <div className="containerDashboard">
-      {userInfo && (
-        <>
-          <h1 className="club-title">{userInfo.teamName}</h1>
-          
-          {/* Mensaje de éxito */}
-          {successMessage && (
-            <div className="success-message">
-              <div className="success-content">
-                <span className="success-icon">🎉</span>
-                <p>{successMessage}</p>
-                <button 
-                  onClick={() => setSuccessMessage(null)} 
-                  className="close-success"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-          
-          <div className="team-info" style={{ marginBottom: '2.5rem' }}>
-            <p><strong>Stadium:</strong> {userInfo.stadium}</p>
-            <p><strong>City:</strong> {userInfo.city}</p>
-            <p><strong>Founded:</strong> {userInfo.yearFounded}</p>
-            <p><strong>Total Players:</strong> {playersDashboard.length}</p>
-            <p><strong>Players For Sale:</strong> {playersForSale}</p>
-            <p><strong>Players Not For Sale:</strong> {playersNotForSale}</p>
-            <p><strong>Total Squad Value:</strong> ${totalValue.toLocaleString()}</p>
-            <div className="dashboard-actions">
-              <button onClick={() => navigate('/manage-my-players')} className="manage-players-btn">
-                ⚙️ Manage My Players
-              </button>
-            </div>
+      <h1 className="club-title">{userInfo.teamName || userInfo.clubName || userInfo.username}</h1>
+
+      {/* Success message */}
+      {successMessage && (
+        <div className="success-message">
+          <div className="success-content">
+            <span className="success-icon">🎉</span>
+            <p>{successMessage}</p>
+            <button onClick={clearSuccessMessage} className="close-success">
+              ✕
+            </button>
           </div>
-        </>
+        </div>
       )}
-      {playersDashboard.length === 0 ? (
+
+      <div className="team-info" style={{ marginBottom: '2.5rem' }}>
+        <p><strong>Stadium:</strong> {userInfo.stadium || 'Unknown'}</p>
+        <p><strong>City:</strong> {userInfo.city || 'Unknown'}</p>
+        <p><strong>Founded:</strong> {userInfo.yearFounded || 'Unknown'}</p>
+        <p><strong>Total Players:</strong> {dashboardStats.totalPlayers}</p>
+        <p><strong>Players For Sale:</strong> {dashboardStats.playersForSale}</p>
+        <p><strong>Players Not For Sale:</strong> {dashboardStats.playersNotForSale}</p>
+        <p><strong>Total Squad Value:</strong> ${dashboardStats.totalValue.toLocaleString()}</p>
+        <div className="dashboard-actions">
+          <button onClick={navigateToManagePlayers} className="manage-players-btn">
+            ⚙️ Manage My Players
+          </button>
+        </div>
+      </div>
+
+      {dashboardStats.totalPlayers === 0 ? (
         <div className="no-players">
           <div className="no-players-icon">⚽</div>
           <h2>No Players Yet!</h2>
           <p>Your squad is empty. Time to build your dream team!</p>
           <p>Visit the marketplace to discover and purchase talented players.</p>
           <div className="no-players-actions">
-            <button onClick={() => navigate('/players')} className="marketplace-button">🏪 Browse Marketplace</button>
-            <button onClick={() => navigate('/manage-my-players')} className="manage-button">⚙️ Manage Players</button>
-            <button onClick={() => window.location.reload()} className="refresh-button">🔄 Refresh</button>
+            <button onClick={navigateToMarketplace} className="marketplace-button">
+              🏪 Browse Marketplace
+            </button>
+            <button onClick={navigateToManagePlayers} className="manage-button">
+              ⚙️ Manage Players
+            </button>
+            <button onClick={handleRetry} className="refresh-button">
+              🔄 Refresh
+            </button>
           </div>
         </div>
       ) : (
@@ -234,7 +223,7 @@ const Dashboard = () => {
             <FifaPlayerCard
               key={player.id}
               player={player}
-              clubName={userInfo?.teamName || userInfo?.clubName || userInfo?.username || 'Unknown Club'}
+              clubName={userInfo.teamName || userInfo.clubName || userInfo.username || 'Unknown Club'}
               compact={true}
             />
           ))}
