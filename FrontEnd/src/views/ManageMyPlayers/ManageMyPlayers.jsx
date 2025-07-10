@@ -141,6 +141,7 @@ const ManageMyPlayers = () => {
                 setPlayers(prev => [...prev, updatedPlayer]);
                 alert('Player has been removed from sale and is back in your club!');
             }
+            window.location.reload();
 
             setPlayerToSell(null);
         } catch (error) {
