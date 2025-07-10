@@ -10,12 +10,16 @@ const API_BASE_URL = 'http://localhost:8080';
  * @returns {string} - La URL de la imagen
  */
 export const getPlayerImageUrl = (player) => {
+  console.log('🖼️ getPlayerImageUrl called with:', player);
+  
   if (!player) {
+    console.log('🖼️ No player provided, returning default image');
     return '/images/default-player.png';
   }
 
   // Si el jugador tiene una imagen personalizada almacenada en el backend
   if (player.image && player.image.startsWith('/images/players/')) {
+    console.log('🖼️ Using backend stored image:', player.image);
     const imagePath = player.image.replace('/images/players/', '');
     const [playerId, fileName] = imagePath.split('/');
     return `${API_BASE_URL}/players/image/${playerId}/${fileName}`;
@@ -23,15 +27,24 @@ export const getPlayerImageUrl = (player) => {
 
   // Si la imagen es una URL externa (como las de placeholder)
   if (player.image && (player.image.startsWith('http') || player.image.startsWith('https'))) {
+    console.log('🖼️ Using external URL:', player.image);
     return player.image;
   }
 
   // Si la imagen es una ruta local del frontend
   if (player.image && player.image.startsWith('/images/')) {
+    console.log('🖼️ Using local frontend image:', player.image);
     return player.image;
   }
 
-  // Imagen por defecto
+  // Fallback determinístico basado en el ID del jugador
+  if (player.id) {
+    console.log('🖼️ No valid image found, using deterministic placeholder for player', player.id);
+    return getPlaceholderImageUrl(player.id);
+  }
+
+  // Imagen por defecto como último recurso
+  console.log('🖼️ No valid image or ID found, using default');
   return '/images/default-player.png';
 };
 
@@ -41,8 +54,8 @@ export const getPlayerImageUrl = (player) => {
  * @returns {string} - URL de la imagen placeholder
  */
 export const getPlaceholderImageUrl = (playerId) => {
-  // Usar una imagen de placeholder basada en el ID
-  const placeholderIndex = (playerId % 20) + 1; // 20 imágenes diferentes
+  // Usar una imagen de placeholder basada en el ID (0-99 para ser consistente)
+  const placeholderIndex = playerId % 100;
   return `https://randomuser.me/api/portraits/men/${placeholderIndex}.jpg`;
 };
 

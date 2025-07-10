@@ -425,10 +425,8 @@ const ManageMyPlayers = () => {
                     onClose={() => setShowAddForm(false)}
                     showToastMessage={showToastMessage}
                     onPlayerAdded={(newPlayer) => {
-                        // Solo agregar a la lista si NO está marcado para venta
-                        if (!newPlayer.isForSale) {
-                            setPlayers(prev => [...prev, newPlayer]);
-                        }
+                        // Agregar el nuevo jugador a la lista local independientemente de su estado de venta
+                        setPlayers(prev => [...prev, newPlayer]);
                         setShowAddForm(false);
 
                         const message = newPlayer.isForSale

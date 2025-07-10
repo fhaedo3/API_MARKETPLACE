@@ -43,7 +43,15 @@ const handleAddToCart = (e) => {
 };
   const isOwnPlayer = owner?.id === userId;
   const displayName = name && lastName ? `${name} ${lastName}` : name || 'Unknown Player';
-  console.log(clubName)
+  
+  // Debug: log player data and image URL
+  console.log('PlayerCard Debug:', {
+    playerName: displayName,
+    playerId: id,
+    playerImage: image,
+    computedImageUrl: getPlayerImageUrl(player),
+    fullPlayer: player
+  });
   return (
     <div className="fifa-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
       <div className={`fifa-sale-badge ${isForSale ? 'for-sale' : 'not-for-sale'}`}>
