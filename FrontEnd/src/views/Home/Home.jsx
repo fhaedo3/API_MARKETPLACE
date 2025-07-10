@@ -10,12 +10,12 @@ import { getPlayerImageUrl } from '../../utils/imageUtils';
 const Home = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   // Redux state
   const players = useSelector(selectAllPlayers);
   const loading = useSelector(selectPlayersLoading);
   const error = useSelector(selectPlayersError);
-  
+
   // Local state para búsqueda
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPlayers, setFilteredPlayers] = useState([]);
@@ -111,42 +111,8 @@ const Home = () => {
           <div className="hero-inner">
             <div className="hero-content">
               <h1>ScoutMarket</h1>
-              <h2>Best Place To Buy Or Sell Players!!!</h2>
+              <h2>¡Best Place To Buy Or Sell Players!</h2>
               <p>See All The Data Of The Players</p>
-
-              <div className="hero-search">
-                <input
-                  type="text"
-                  placeholder="Search players by name, position or characteristics"
-                  className="hero-search-input"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  onKeyPress={handleKeyPress}
-                />
-                <button
-                  className="hero-search-btn"
-                  onClick={handleSearchSubmit}
-                  disabled={loading}
-                >
-                  🔍
-                </button>
-                {isSearching && (
-                  <button
-                    className="hero-clear-btn"
-                    onClick={clearSearch}
-                    title="Clear search"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              {/* Información de debug - puedes remover esto en producción */}
-              {process.env.NODE_ENV === 'development' && (
-                <div style={{ fontSize: '12px', marginTop: '10px', color: '#666' }}>
-                  Debug: {players.length} jugadores cargados, {filteredPlayers.length} mostrados
-                </div>
-              )}
             </div>
             <div className="hero-image-box">
               <img src="/images/FondoHome.png" alt="Hero players" />

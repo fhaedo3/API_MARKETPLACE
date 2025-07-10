@@ -12,7 +12,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  
+
   // Redux state
   const cartItems = useSelector(selectCartItems);
   const cartTotal = useSelector(selectCartTotal);
@@ -23,20 +23,20 @@ const Checkout = () => {
   const username = useSelector(selectUsername);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const token = useSelector(selectToken);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  // Datos del formulario de pago
+
+  // Datos del formulario de pago con valores por defecto
   const [paymentData, setPaymentData] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardHolder: '',
-    email: '',
-    address: '',
-    city: '',
-    zipCode: ''
+    cardNumber: '4532 1234 5678 9012',
+    expiryDate: '12/26',
+    cvv: '123',
+    cardHolder: 'John Doe',
+    email: 'john.doe@example.com',
+    address: '123 Main Street',
+    city: 'New York',
+    zipCode: '10001'
   });
 
   // Cargar datos del carrito y balance al montar el componente
@@ -54,7 +54,7 @@ const Checkout = () => {
       if (cartItems.length === 0) {
         dispatch(fetchCartItems());
       }
-      
+
       if (userId) {
         dispatch(fetchUserBalance(userId));
       }
@@ -110,18 +110,31 @@ const Checkout = () => {
     }
   };
 
-  // Formatear fecha de expiración
+  // Formatear fecha de expiración - CORREGIDO
   const formatExpiryDate = (value) => {
-    // Solo permitir números
-    const v = value.replace(/[^0-9]/g, '');
-    
-    // Formatear como MM/YY
+    // Remover todo lo que no sea número
+    const v = value.replace(/\D/g, '');
+
+    // Si está vacío, retornar vacío
+    if (v === '') return '';
+
+    // Si solo tiene 1 dígito, retornarlo
+    if (v.length === 1) return v;
+
+    // Si tiene 2 o más dígitos, formatear como MM/YY
     if (v.length >= 2) {
       const month = v.substring(0, 2);
       const year = v.substring(2, 4);
-      return year ? `${month}/${year}` : month;
+
+      // Si solo tenemos el mes, retornar mes + /
+      if (v.length === 2) {
+        return `${month}/`;
+      }
+
+      // Si tenemos mes y año, retornar MM/YY
+      return `${month}/${year}`;
     }
-    
+
     return v;
   };
 
@@ -147,12 +160,12 @@ const Checkout = () => {
   // Validar formulario
   const validateForm = () => {
     const { cardNumber, expiryDate, cvv, cardHolder, email } = paymentData;
-    
+
     if (!cardNumber || cardNumber.replace(/\s/g, '').length < 13) {
       setError('Please enter a valid card number');
       return false;
     }
-    
+
     if (!expiryDate || expiryDate.length < 5) {
       setError('Please enter a valid expiry date (MM/YY)');
       return false;
@@ -164,17 +177,17 @@ const Checkout = () => {
       setError('Please enter a valid month (01-12)');
       return false;
     }
-    
+
     if (!cvv || cvv.length < 3) {
       setError('Please enter a valid CVV');
       return false;
     }
-    
+
     if (!cardHolder.trim()) {
       setError('Please enter the cardholder name');
       return false;
     }
-    
+
     if (!email.trim() || !email.includes('@')) {
       setError('Please enter a valid email address');
       return false;
@@ -186,7 +199,7 @@ const Checkout = () => {
   // Procesar compra
   const handlePurchase = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -240,9 +253,9 @@ const Checkout = () => {
       await dispatch(clearCart(userId)).unwrap();
 
       // Redirigir a una página de confirmación o dashboard
-      navigate('/dashboard', { 
-        state: { 
-          successMessage: `Purchase completed! You have successfully acquired ${cartItems.length} player(s) for $${cartTotal.toLocaleString()}.` 
+      navigate('/dashboard', {
+        state: {
+          successMessage: `Purchase completed! You have successfully acquired ${cartItems.length} player(s) for $${cartTotal.toLocaleString()}.`
         }
       });
 
@@ -284,8 +297,8 @@ const Checkout = () => {
             <div className="order-items">
               {cartItems.map((player) => (
                 <div key={player.id} className="order-item">
-                  <img 
-                    src={player.image || '/images/default-player.png'} 
+                  <img
+                    src={player.image || '/images/default-player.png'}
                     alt={player.name}
                     className="order-item-image"
                   />
@@ -299,7 +312,7 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="order-totals">
               <div className="total-line">
                 <span>Subtotal:</span>
@@ -319,7 +332,7 @@ const Checkout = () => {
           {/* Payment Form */}
           <div className="payment-form">
             <h2>Payment Information</h2>
-            
+
             {error && (
               <div className="error-message">
                 {error}
@@ -329,7 +342,7 @@ const Checkout = () => {
             <form onSubmit={handlePurchase}>
               <div className="form-section">
                 <h3>Card Details</h3>
-                
+
                 <div className="form-group">
                   <label>Card Number</label>
                   <input
@@ -385,7 +398,7 @@ const Checkout = () => {
 
               <div className="form-section">
                 <h3>Billing Information</h3>
-                
+
                 <div className="form-group">
                   <label>Email</label>
                   <input
@@ -434,8 +447,8 @@ const Checkout = () => {
               </div>
 
               <div className="form-actions">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={loading}
                   className="btn-purchase"
                 >
