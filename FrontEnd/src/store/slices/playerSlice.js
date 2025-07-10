@@ -90,6 +90,44 @@ export const fetchPlayersByOwner = createAsyncThunk(
   }
 );
 
+export const createPlayer = createAsyncThunk(
+  'players/createPlayer',
+  async (playerData, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+      
+      const formDataToSend = new FormData();
+      formDataToSend.append('player', new Blob([JSON.stringify(playerData)], {
+        type: 'application/json'
+      }));
+
+      const response = await fetch('http://localhost:8080/players', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error creating player: ${response.status} - ${errorText}`);
+      }
+
+      const newPlayer = await response.json();
+      
+      // Asegurar que el jugador tenga la imagen
+      if (newPlayer && !newPlayer.image && playerData.image) {
+        newPlayer.image = playerData.image;
+      }
+      
+      return newPlayer;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const initialState = {
   allPlayers: [],
   currentPlayer: null,
@@ -171,6 +209,20 @@ const playerSlice = createSlice({
         state.userPlayers = action.payload;
       })
       .addCase(fetchPlayersByOwner.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Create player
+      .addCase(createPlayer.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPlayer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allPlayers.push(action.payload);
+        state.userPlayers.push(action.payload);
+      })
+      .addCase(createPlayer.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

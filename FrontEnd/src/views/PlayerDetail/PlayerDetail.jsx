@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchPlayerById } from '../../store/slices/playerSlice';
 import { fetchCartItems, addToCart } from '../../store/slices/cartSlice';
 import { fetchUserByUsername } from '../../store/slices/clubSlice';
+import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const PlayerDetail = () => {
   const dispatch = useDispatch();
@@ -184,11 +185,19 @@ const PlayerDetail = () => {
       )}
       <div className="player-detail">
         <div className="player-header">
+          {/* Debug player data */}
+          {console.log('PlayerDetail Debug:', {
+            playerName: currentPlayer.name,
+            playerId: currentPlayer.id,
+            playerImage: currentPlayer.image,
+            computedImageUrl: getPlayerImageUrl(currentPlayer),
+            fullPlayer: currentPlayer
+          })}
           <img
-            src={currentPlayer.image || 'https://via.placeholder.com/120'}
+            src={getPlayerImageUrl(currentPlayer)}
             alt={currentPlayer.name || 'Player'}
             className="player-image"
-            onError={(e) => (e.target.src = 'https://via.placeholder.com/120')}
+            onError={(e) => handleImageError(e, currentPlayer.id)}
           />
           <h1 className="player-bio">
             {currentPlayer.name && currentPlayer.lastName
