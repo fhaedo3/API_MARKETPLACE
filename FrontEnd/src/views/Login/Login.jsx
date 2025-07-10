@@ -8,7 +8,7 @@ const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    
+
     // Redux state
     const { loading, error, isAuthenticated } = useSelector(state => state.auth);
     const [success, setSuccess] = useState(null);
@@ -111,9 +111,9 @@ const Login = () => {
                     email: formData.email.trim(),
                     password: formData.password
                 };
-                
+
                 const result = await dispatch(loginUser(loginData)).unwrap();
-                
+
                 if (result) {
                     setSuccess('Login successful! Redirecting...');
                     setTimeout(() => {
@@ -131,9 +131,9 @@ const Login = () => {
                     city: formData.city.trim(),
                     role: formData.role
                 };
-                
+
                 const result = await dispatch(registerUser(registerData)).unwrap();
-                
+
                 if (result) {
                     setSuccess('Registration successful! You can now log in.');
                     // Cambiar automáticamente a la pestaña de login después del registro exitoso
@@ -283,13 +283,6 @@ const Login = () => {
 
                     {isLogin && (
                         <a href="#" className="forgot-password">Forgot your password?</a>
-                    )}
-
-                    {/* Información de debug - remover en producción */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <div style={{ fontSize: '12px', marginTop: '10px', color: '#666' }}>
-                            Debug: {isLogin ? 'Login' : 'Register'} mode, Loading: {loading.toString()}
-                        </div>
                     )}
                 </div>
             </div>
