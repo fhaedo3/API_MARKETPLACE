@@ -6,6 +6,7 @@ import { logout } from '../../store/slices/authSlice';
 import { selectIsAuthenticated, selectUsername } from '../../store/slices/authSlice';
 import './Header.css';
 import { selectCartItemCount } from '../../store/slices/cartSlice';
+import { clearCart} from '../../store/slices/cartSlice'; // <-- Agrega este import
 
 // COMPONENTE HEADER
 const Header = () => {
@@ -33,10 +34,16 @@ const Header = () => {
         }
     };
 
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/');
-    };
+    const handleLogout = async () => {
+    try {
+        await dispatch(clearCart()).unwrap(); 
+    } catch (error) {
+       
+        console.error('Error clearing cart on logout:', error);
+    }
+    dispatch(logout());
+    navigate('/');
+};
 
     return (
         <header className="header">
