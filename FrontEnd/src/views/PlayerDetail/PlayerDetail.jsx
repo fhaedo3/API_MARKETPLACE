@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPlayerById } from '../../store/slices/playerSlice';
 import { fetchCartItems, addToCart } from '../../store/slices/cartSlice';
-import { fetchUserByUsername } from '../../store/slices/clubSlice';
+import { getCurrentUserId } from '../../store/slices/authSlice';
 import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const PlayerDetail = () => {
@@ -34,39 +34,6 @@ const PlayerDetail = () => {
     }, 2500);
   };
 
-  // Función para decodificar token y obtener username
-  const decodeToken = (token) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  };
-
-  // Función para obtener el userId real del usuario logueado
-  const getCurrentUserId = async () => {
-    if (!token) return null;
-
-    try {
-      const decoded = decodeToken(token);
-      const username = decoded.sub || decoded.username || decoded.name;
-      if (!username) return null;
-
-      // Usar Redux para obtener el usuario por username
-      const result = await dispatch(fetchUserByUsername(username)).unwrap();
-      return result.id;
-    } catch (error) {
-      console.error('Error getting current user ID:', error);
-      return null;
-    }
-  };
-
   // Función para agregar al carrito usando Redux
   const handleAddToCart = async () => {
     if (!isAuthenticated || !token) {
@@ -91,12 +58,22 @@ const PlayerDetail = () => {
     }
 
     try {
+      // Obtener el userId real del usuario logueado usando Redux
+      const realUserId = await dispatch(getCurrentUserId()).unwrap();
+      
+      if (!realUserId) {
+        showToastMessage('Error getting user ID. Please login again.');
+        return;
+      }
+
+      console.log('Adding to cart with userId:', realUserId, 'playerId:', currentPlayer.id);
+
       // Primero asegurarse de que tenemos el carrito actualizado
       await dispatch(fetchCartItems()).unwrap();
 
       // Luego agregar el item
       await dispatch(addToCart({
-        userId: cartUserId,
+        userId: realUserId,
         playerId: currentPlayer.id
       })).unwrap();
 
@@ -123,16 +100,20 @@ const PlayerDetail = () => {
   useEffect(() => {
     const checkOwnPlayer = async () => {
       if (currentPlayer && currentPlayer.ownerId && isAuthenticated) {
-        const userId = await getCurrentUserId();
-        if (userId) {
-          setCurrentUserId(userId);
-          setIsOwnPlayer(currentPlayer.ownerId === userId);
+        try {
+          const userId = await dispatch(getCurrentUserId()).unwrap();
+          if (userId) {
+            setCurrentUserId(userId);
+            setIsOwnPlayer(currentPlayer.ownerId === userId);
+          }
+        } catch (error) {
+          console.error('Error checking own player:', error);
         }
       }
     };
 
     checkOwnPlayer();
-  }, [currentPlayer, isAuthenticated, token]);
+  }, [currentPlayer, isAuthenticated, token, dispatch]);
 
   // Fetch inicial de datos
   useEffect(() => {

@@ -3,11 +3,18 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 const API_BASE_URL = 'http://localhost:8080';
 
 // Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+export const getAuthHeaders = (token) => {
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
+  };
+};
+
+// Helper function to get auth headers for form data
+export const getAuthHeadersFormData = (token) => {
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/x-www-form-urlencoded',
   };
 };
 
@@ -29,10 +36,7 @@ const decodeToken = (token) => {
 // Helper function to get user by username
 const getUserByUsername = async (username, token) => {
   const response = await fetch('http://localhost:8080/users', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(token),
   });
   if (!response.ok) {
     throw new Error(`Error fetching users: ${response.status}`);
@@ -48,10 +52,7 @@ const getUserByUsername = async (username, token) => {
 // Helper function to get or create active cart
 const getActiveCart = async (userId, token) => {
   const response = await fetch(`${API_BASE_URL}/shopping-carts/user/${userId}/active`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(token),
   });
 
   if (response.ok) {
@@ -60,10 +61,7 @@ const getActiveCart = async (userId, token) => {
     // Create new cart if it doesn't exist
     const createResponse = await fetch('http://localhost:8080/shopping-carts', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(token),
       body: JSON.stringify({
         userId: userId,
         status: 'ACTIVE'
@@ -177,18 +175,37 @@ export const fetchCartItems = createAsyncThunk(
 // Async thunk para agregar un jugador al carrito
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ userId, playerId }, { rejectWithValue }) => {
+  async ({ userId, playerId }, { getState, rejectWithValue }) => {
     try {
+      const token = getState().auth.token || localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Get or create active cart for the user
+      const cart = await getActiveCart(userId, token);
+      
+      console.log('Adding to cart:', { cartId: cart.id, playerId, userId });
+
       const response = await fetch(`${API_BASE_URL}/cart-items/add-to-cart`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({ cartId: userId, playerId }),
+        headers: getAuthHeadersFormData(token),
+        body: new URLSearchParams({ cartId: cart.id, playerId }),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to add to cart');
+        if (response.status === 403) {
+          throw new Error('Access denied. Please login again.');
+        }
+        if (response.status === 401) {
+          throw new Error('Authentication failed. Please login again.');
+        }
+        if (response.status === 409) {
+          throw new Error('Player is already in your cart.');
+        }
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to add to cart');
       }
       
       const data = await response.json();

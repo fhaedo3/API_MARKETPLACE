@@ -18,7 +18,7 @@ const decodeToken = (token) => {
 // Async thunks
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password }, { rejectWithValue, dispatch }) => {
     try {
       const response = await fetch('http://localhost:8080/api/v1/auth/authenticate', {
         method: 'POST',
@@ -36,14 +36,24 @@ export const loginUser = createAsyncThunk(
       const data = await response.json();
       const token = data.accessToken || data.access_token;
       const decodedToken = decodeToken(token);
+      const username = decodedToken?.sub || email;
       
       // Guardar en localStorage
       localStorage.setItem('token', token);
       
+      // Obtener el userId real del backend
+      let realUserId = null;
+      try {
+        realUserId = await dispatch(fetchUserIdByUsername(username)).unwrap();
+      } catch (error) {
+        console.warn('Could not fetch real user ID:', error);
+        // Continuar sin el userId real si hay error
+      }
+      
       return {
         token,
-        username: decodedToken?.sub || email,
-        userId: decodedToken?.userId,
+        username,
+        userId: realUserId || decodedToken?.userId,
       };
     } catch (error) {
       return rejectWithValue(error.message);
@@ -102,6 +112,89 @@ export const checkAuthStatus = createAsyncThunk(
         username: decodedToken.sub,
         userId: decodedToken.userId,
       };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const fetchUserIdByUsername = createAsyncThunk(
+  'auth/fetchUserIdByUsername',
+  async (username, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token || localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:8080/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching users: ${response.status}`);
+      }
+
+      const users = await response.json();
+      const user = users.find(u => u.username && u.username.trim().toLowerCase() === username.trim().toLowerCase());
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return user.id;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getCurrentUserId = createAsyncThunk(
+  'auth/getCurrentUserId',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState();
+      let token = state.auth.token;
+      
+      if (!token) {
+        token = localStorage.getItem('token');
+      }
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const decodedToken = decodeToken(token);
+      const username = decodedToken?.sub || decodedToken?.username || decodedToken?.name;
+      
+      if (!username) {
+        throw new Error('No username found in token');
+      }
+
+      // Usar la función fetchUserIdByUsername que ya existe
+      const result = await fetch('http://localhost:8080/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!result.ok) {
+        throw new Error(`Error fetching users: ${result.status}`);
+      }
+
+      const users = await result.json();
+      const user = users.find(u => u.username && u.username.trim().toLowerCase() === username.trim().toLowerCase());
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return user.id;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -210,6 +303,30 @@ const authSlice = createSlice({
         state.token = null;
         state.username = null;
         state.userId = null;
+      })
+      // Fetch user ID by username
+      .addCase(fetchUserIdByUsername.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchUserIdByUsername.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userId = action.payload;
+      })
+      .addCase(fetchUserIdByUsername.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Get current user ID
+      .addCase(getCurrentUserId.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getCurrentUserId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userId = action.payload;
+      })
+      .addCase(getCurrentUserId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

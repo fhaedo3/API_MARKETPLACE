@@ -2,8 +2,8 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getPlayerImageUrl, handleImageError } from '../../utils/imageUtils';
-import { addToCart } from '../../store/slices/cartSlice';
-import { selectCartUserId } from '../../store/slices/cartSlice';
+import { addToCart, fetchCartItems } from '../../store/slices/cartSlice';
+import { selectUserId } from '../../store/slices/authSlice';
 import './playerCard.css';
 
 const FifaPlayerCard = ({ player, compact = false, clubName }) => {
@@ -22,7 +22,7 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userId = useSelector(selectCartUserId);
+  const userId = useSelector(selectUserId);
   const handleClick = () => {
     navigate(`/player/${id}`);
   };
@@ -34,12 +34,23 @@ const FifaPlayerCard = ({ player, compact = false, clubName }) => {
     }
   };
 
-const handleAddToCart = (e) => {
+const handleAddToCart = async (e) => {
   e.stopPropagation();
-  dispatch(addToCart({ userId, playerId: id }))
-    .then(() => {
-      window.location.reload(); // ✅ Fuerza reload después de agregar
-    });
+  
+  if (!userId) {
+    console.error('No user ID available for adding to cart');
+    return;
+  }
+
+  console.log('PlayerCard adding to cart:', { userId, playerId: id });
+  
+  try {
+    await dispatch(addToCart({ userId, playerId: id })).unwrap();
+    await dispatch(fetchCartItems()).unwrap();
+    window.location.reload(); // ✅ Fuerza reload después de agregar
+  } catch (error) {
+    console.error('Error adding to cart from PlayerCard:', error);
+  }
 };
   const isOwnPlayer = owner?.id === userId;
   const displayName = name && lastName ? `${name} ${lastName}` : name || 'Unknown Player';
